@@ -1,4 +1,4 @@
-# Singl SecurityToken.sol
+# Single SecurityToken.sol
 
 `SecurityToken.sol` es un contrato inteligente ERC20 extensible y seguro, diseñado para representar tokens regulados (security tokens) en Ethereum. Utiliza los módulos upgradeables de OpenZeppelin y añade controles de acceso, listas blanca/negra y registro de transacciones.
 
