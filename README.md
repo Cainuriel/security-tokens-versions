@@ -136,9 +136,9 @@ SecurityToken.TransactionRecord memory record = securityToken.getTransactionReco
 
 # Security Token con Patrón Beacon
 
-Este proyecto implementa un sistema de tokens de seguridad (Security Tokens) utilizando el patrón **Beacon Proxy** de OpenZeppelin, permitiendo la creación de múltiples instancias de tokens actualizables de manera eficiente.
+Este patrón implementa un sistema de tokens de seguridad (Security Tokens) utilizando el patrón **Beacon Proxy** de OpenZeppelin, permitiendo la creación de múltiples instancias de tokens actualizables de manera eficiente.
 
-## 🏗️ Arquitectura del Sistema
+##  Arquitectura del Sistema
 
 El sistema consta de tres componentes principales:
 
@@ -196,7 +196,7 @@ contracts/
 ## 🚀 Guía de Despliegue
 
 
-> **Nota:** Este proyecto **NO** usa `@openzeppelin/hardhat-upgrades` ya que implementa el patrón Beacon manualmente para mayor control sobre el proceso de despliegue.
+> **Nota:** Este patrón **NO** usa `@openzeppelin/hardhat-upgrades` ya que implementa el patrón Beacon manualmente para mayor control sobre el proceso de despliegue.
 
 ### Paso a Paso del Despliegue
 
@@ -427,7 +427,7 @@ npx hardhat coverage
 
 Una implementación de token de seguridad (security token) utilizando el patrón Diamond (EIP-2535) que permite modularidad, upgradeability y cumplimiento regulatorio.
 
-## 🏗️ Arquitectura
+##  Arquitectura
 
 ### Patrón Diamond (EIP-2535)
 
@@ -825,7 +825,7 @@ await diamondCut.diamondCut(cut, ethers.ZeroAddress, "0x");
 - [ ] Documentación verificada
 
 - **Emergency Procedures:** Establecer procedimientos claros para pausas y reversiones
-- **Monitoring:** Implementar monitoring para transacciones sospechosas - ver anexo
+- **Monitoring:** Implementar monitoring para transacciones sospechosas – ver [monitoring/README.md](../monitoring/README.md)
 
 ---
 
