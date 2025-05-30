@@ -1,3 +1,12 @@
+# Patrones con SecurityToken.sol
+
+## Índice
+
+- [Single SecurityToken.sol](#single-securitytokensol)
+- [Security Token con Patrón Beacon](#security-token-con-patrón-beacon)
+- [Diamond Security Token](#diamond-security-token)
+
+
 # Single SecurityToken.sol
 
 `SecurityToken.sol` es un contrato inteligente ERC20 extensible y seguro, diseñado para representar tokens regulados (security tokens) en Ethereum. Utiliza los módulos upgradeables de OpenZeppelin y añade controles de acceso, listas blanca/negra y registro de transacciones.
