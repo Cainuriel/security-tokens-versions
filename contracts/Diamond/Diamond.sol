@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 import {IDiamondLoupe, IDiamondCut, IERC165} from './Interfaces/Interfaces.sol';
-import './LibDiamond.sol';
+import './Librarys/LibDiamond.sol';
 
 contract Diamond {
     constructor(IDiamondCut.FacetCut[] memory _diamondCut, address _init, bytes memory _calldata) payable {        

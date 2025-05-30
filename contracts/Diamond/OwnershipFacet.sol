@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
-import './LibDiamond.sol';
+import './Librarys/LibDiamond.sol';
 
 contract OwnershipFacet {
     function transferOwnership(address _newOwner) external {

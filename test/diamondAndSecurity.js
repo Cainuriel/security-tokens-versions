@@ -33,17 +33,22 @@ describe("SecurityToken (Diamond architecture)", function () {
     jurisdiction: "ES"
   };
 
-  // Function selectors for facets
-  function getSelectors(contract) {
-    const signatures = Object.keys(contract.interface.functions);
-    const selectors = signatures.reduce((acc, val) => {
-      if (val !== 'init(bytes)') {
-        acc.push(contract.interface.getFunction(val).selector);
-      }
-      return acc;
-    }, []);
-    return selectors;
-  }
+// Function selectors for facets
+/**
+ * @description
+ * In the Diamond pattern, we need to register which functions (selectors) each facet handles.
+ * This function automates obtaining those selectors for each facet, making it easier to build the "diamond cut"
+ * (the list of functions each facet adds to the Diamond).
+ */
+function getSelectors(contract) {
+
+  const functionFragments = contract.interface.fragments.filter(f => f.type === "function");
+//   console.log('functionFragments:', functionFragments.map(f => f.name));
+  const selectors = functionFragments
+    .filter(f => f.name !== "init")
+    .map(f => contract.interface.getFunction(f.name).selector);
+  return selectors;
+}
 
   before(async function () {
     [admin, user1, user2] = await ethers.getSigners();
@@ -77,41 +82,41 @@ describe("SecurityToken (Diamond architecture)", function () {
 
     DiamondLoupeFacet = await ethers.getContractFactory("DiamondLoupeFacet");
     diamondLoupeFacet = await DiamondLoupeFacet.deploy();
-    await diamondLoupeFacet.waitForDeployment();
+    await diamondLoupeFacet.waitForDeployment()
 
-    // Prepare diamond cut for initial deployment
     const cut = [
-      {
-        facetAddress: await diamondCutFacet.getAddress(),
-        action: 0, // Add
-        functionSelectors: getSelectors(diamondCutFacet)
-      },
-      {
-        facetAddress: await diamondLoupeFacet.getAddress(),
-        action: 0, // Add
-        functionSelectors: getSelectors(diamondLoupeFacet)
-      },
-      {
-        facetAddress: await erc20Facet.getAddress(),
-        action: 0, // Add
-        functionSelectors: getSelectors(erc20Facet)
-      },
-      {
-        facetAddress: await mintingFacet.getAddress(),
-        action: 0, // Add
-        functionSelectors: getSelectors(mintingFacet)
-      },
-      {
-        facetAddress: await adminFacet.getAddress(),
-        action: 0, // Add
-        functionSelectors: getSelectors(adminFacet)
-      },
-      {
-        facetAddress: await complianceFacet.getAddress(),
-        action: 0, // Add
-        functionSelectors: getSelectors(complianceFacet)
-      }
-    ];
+            {
+            facetAddress: await diamondCutFacet.getAddress(),
+            action: 0, // Add
+            functionSelectors: getSelectors(diamondCutFacet)
+            },
+            {
+            facetAddress: await diamondLoupeFacet.getAddress(),
+            action: 0, // Add
+            functionSelectors: getSelectors(diamondLoupeFacet)
+            },
+            {
+            facetAddress: await erc20Facet.getAddress(),
+            action: 0, // Add
+            functionSelectors: getSelectors(erc20Facet)
+            },
+            {
+            facetAddress: await mintingFacet.getAddress(),
+            action: 0, // Add
+            functionSelectors: getSelectors(mintingFacet)
+            },
+            {
+            facetAddress: await adminFacet.getAddress(),
+            action: 0, // Add
+            functionSelectors: getSelectors(adminFacet)
+            },
+            {
+            facetAddress: await complianceFacet.getAddress(),
+            action: 0, // Add
+            functionSelectors: getSelectors(complianceFacet)
+            }
+        ];
+      
 
     // Prepare initialization data
     const initData = diamondInit.interface.encodeFunctionData("init", [
