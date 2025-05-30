@@ -1,3 +1,418 @@
+# Singl SecurityToken.sol
+
+`SecurityToken.sol` es un contrato inteligente ERC20 extensible y seguro, diseñado para representar tokens regulados (security tokens) en Ethereum. Utiliza los módulos upgradeables de OpenZeppelin y añade controles de acceso, listas blanca/negra y registro de transacciones.
+
+## Características principales
+
+- **ERC20 estándar** con funciones de quemado, pausado y límite de emisión (cap).
+- **Control de acceso** basado en roles (`ADMIN_ROLE`, `MINTER_ROLE`, `PAUSER_ROLE`).
+- **Listas blanca y negra** para restringir transferencias.
+- **Registro de transacciones** para trazabilidad y cumplimiento.
+- **Inicializable** para despliegues upgradeables.
+
+---
+
+## Funciones principales
+
+### Inicialización
+
+```solidity
+function initialize(
+    string memory name,
+    string memory symbol,
+    uint256 cap,
+    string memory _isin,
+    string memory _instrumentType,
+    string memory _jurisdiction,
+    address admin
+) public virtual initializer
+```
+Inicializa el token con sus parámetros y asigna los roles principales al `admin`.
+
+---
+
+### Funciones de emisión y control
+
+- **mint(address to, uint256 amount)**  
+  Permite a cuentas con `MINTER_ROLE` emitir nuevos tokens.
+
+- **pause()**  
+  Permite a cuentas con `PAUSER_ROLE` pausar todas las transferencias.
+
+- **unpause()**  
+  Permite a cuentas con `PAUSER_ROLE` reanudar las transferencias.
+
+---
+
+### Listas blanca y negra
+
+- **addToWhitelist(address account)**  
+  Agrega una cuenta a la whitelist (solo `ADMIN_ROLE`).
+
+- **removeFromWhitelist(address account)**  
+  Elimina una cuenta de la whitelist (solo `ADMIN_ROLE`).
+
+- **addToBlacklist(address account)**  
+  Agrega una cuenta a la blacklist (solo `ADMIN_ROLE`).
+
+- **removeFromBlacklist(address account)**  
+  Elimina una cuenta de la blacklist (solo `ADMIN_ROLE`).
+
+---
+
+### Registro y reversión de transacciones
+
+- **getTransactionRecord(uint256 id)**  
+  Devuelve los detalles de una transacción registrada.
+
+- **revertTransaction(uint256 transactionId)**  
+  Permite a un administrador revertir una transacción registrada, transfiriendo los tokens de vuelta.
+
+---
+
+### Métadatos y variables públicas
+
+- **isin**  
+  Código ISIN del instrumento financiero.
+
+- **instrumentType**  
+  Tipo de instrumento (ej: "bond").
+
+- **jurisdiction**  
+  Jurisdicción aplicable.
+
+- **transactionCount**  
+  Número total de transacciones registradas.
+
+---
+
+## Seguridad y cumplimiento
+
+- Todas las transferencias verifican que el emisor y receptor estén en la whitelist y no en la blacklist.
+- Solo cuentas con los roles adecuados pueden pausar, mintear o modificar listas.
+- Cada transferencia queda registrada para trazabilidad y cumplimiento normativo.
+
+---
+
+## Ejemplo de uso
+
+```solidity
+// Inicialización (solo una vez)
+securityToken.initialize(
+    "My Security Token",
+    "MST",
+    1000000 ether,
+    "ISIN1234567890",
+    "bond",
+    "ES",
+    adminAddress
+);
+
+// Minteo
+securityToken.mint(user, 1000 ether);
+
+// Pausar y reanudar
+securityToken.pause();
+securityToken.unpause();
+
+// Gestión de listas
+securityToken.addToWhitelist(user);
+securityToken.addToBlacklist(maliciousUser);
+
+// Consultar registro de transacciones
+SecurityToken.TransactionRecord memory record = securityToken.getTransactionRecord(1);
+```
+
+---
+
+# Security Token con Patrón Beacon
+
+Este proyecto implementa un sistema de tokens de seguridad (Security Tokens) utilizando el patrón **Beacon Proxy** de OpenZeppelin, permitiendo la creación de múltiples instancias de tokens actualizables de manera eficiente.
+
+## 🏗️ Arquitectura del Sistema
+
+El sistema consta de tres componentes principales:
+
+1. **SecurityToken.sol**  
+    Contrato de implementación del token de seguridad que incluye:
+    - ERC20 Upgradeable: Funcionalidad básica de token
+    - ERC20 Burnable: Capacidad de quemar tokens
+    - ERC20 Pausable: Pausar/reanudar transferencias
+    - ERC20 Capped: Límite máximo de suministro
+    - Access Control: Sistema de roles y permisos
+    - Whitelist/Blacklist: Control de direcciones autorizadas
+    - Transaction Records: Registro de transacciones para auditoría
+
+2. **SecurityBondFactory.sol**  
+    Factory contract que crea instancias de SecurityToken usando BeaconProxy:
+    - Crea nuevos tokens de seguridad
+    - Mantiene registro de todos los tokens creados
+    - Utiliza el patrón Beacon para actualizaciones eficientes
+
+3. **__CompileBeacon.sol**  
+    Contrato auxiliar para compilación de UpgradeableBeacon en Hardhat.
+
+## 🔑 Características Principales
+
+### Roles y Permisos
+
+- `ADMIN_ROLE`: Gestión de whitelist/blacklist y reversión de transacciones
+- `MINTER_ROLE`: Creación de nuevos tokens
+- `PAUSER_ROLE`: Pausar/reanudar el contrato
+- `DEFAULT_ADMIN_ROLE`: Administración general de roles
+
+### Funcionalidades de Seguridad
+
+- **Whitelist:** Solo direcciones autorizadas pueden recibir tokens
+- **Blacklist:** Bloqueo de direcciones específicas
+- **Pausable:** Capacidad de pausar todas las operaciones
+- **Transaction Reversal:** Reversión de transacciones por administradores
+- **Audit Trail:** Registro completo de todas las transacciones
+
+### Metadatos del Instrumento
+
+- **ISIN:** Identificador internacional del instrumento
+- **Instrument Type:** Tipo de instrumento financiero
+- **Jurisdiction:** Jurisdicción legal aplicable
+
+## 📁 Estructura de Archivos
+
+```
+contracts/
+├── SecurityToken.sol           # Implementación del token de seguridad
+├── SecurityBondFactory.sol     # Factory para crear instancias
+└── __CompileBeacon.sol         # Auxiliar para compilación
+```
+
+## 🚀 Guía de Despliegue
+
+
+> **Nota:** Este proyecto **NO** usa `@openzeppelin/hardhat-upgrades` ya que implementa el patrón Beacon manualmente para mayor control sobre el proceso de despliegue.
+
+### Paso a Paso del Despliegue
+
+1. **Script de despliegue**
+
+    ```js
+    // scripts/deploy.js
+    const { ethers } = require("hardhat");
+
+    async function main() {
+      const [admin] = await ethers.getSigners();
+      console.log("Deploying contracts with account:", admin.address);
+
+      // 1. Desplegar la implementación de SecurityToken
+      const SecurityTokenFactory = await ethers.getContractFactory("SecurityToken");
+      const securityTokenImpl = await SecurityTokenFactory.deploy();
+      await securityTokenImpl.waitForDeployment();
+      
+      const implAddress = await securityTokenImpl.getAddress();
+      console.log("Implementation deployed at:", implAddress);
+
+      // 2. Desplegar el UpgradeableBeacon manualmente
+      const BeaconFactory = await ethers.getContractFactory("UpgradeableBeacon");
+      const beacon = await BeaconFactory.deploy(implAddress, admin.address);
+      await beacon.waitForDeployment();
+      
+      const beaconAddress = await beacon.getAddress();
+      console.log("Beacon deployed at:", beaconAddress);
+
+      // 3. Desplegar el Factory
+      const Factory = await ethers.getContractFactory("SecurityBondFactory");
+      const factory = await Factory.deploy(beaconAddress);
+      await factory.waitForDeployment();
+      
+      const factoryAddress = await factory.getAddress();
+      console.log("Factory deployed at:", factoryAddress);
+
+      return {
+         implementation: implAddress,
+         beacon: beaconAddress,
+         factory: factoryAddress
+      };
+    }
+
+    main().catch((error) => {
+      console.error(error);
+      process.exitCode = 1;
+    });
+    ```
+
+3. **Ejecutar el despliegue**
+
+    ```bash
+    npx hardhat run scripts/deploy.js --network <network-name>
+    ```
+
+4. **Crear una instancia de SecurityToken**
+
+    ```js
+    // scripts/beeaconCreateToken.js
+    async function createSecurityToken() {
+      const [admin, user1] = await ethers.getSigners();
+      
+      // Obtener las instancias de los contratos desplegados
+      const factory = await ethers.getContractAt("SecurityBondFactory", FACTORY_ADDRESS);
+      const securityTokenImpl = await ethers.getContractAt("SecurityToken", IMPLEMENTATION_ADDRESS);
+      
+      // Preparar datos de inicialización usando la implementación real
+      const initData = securityTokenImpl.interface.encodeFunctionData("initialize", [
+         "TestBond",              // name
+         "TBND",                  // symbol
+         ethers.parseUnits("1000000", 18), // cap (1M tokens)
+         "ISIN1234567890",        // ISIN
+         "bond",                  // instrumentType
+         "ES",                    // jurisdiction
+         admin.address            // admin
+      ]);
+
+      // Crear el token
+      const tx = await factory.createBond(initData, user1.address);
+      const receipt = await tx.wait();
+      
+      // Obtener la dirección del primer bond creado
+      const bondAddress = await factory.deployedBonds(0);
+      console.log("Security Token created at:", bondAddress);
+      
+      // Interactuar con el nuevo token
+      const bond = await ethers.getContractAt("SecurityToken", bondAddress);
+      
+      // Configuración inicial
+      await bond.addToWhitelist(admin.address);
+      await bond.addToWhitelist(user1.address);
+      
+      // Mint tokens iniciales
+      await bond.mint(user1.address, ethers.parseUnits("1000", 18));
+      
+      console.log("Token configured and initial minting completed");
+      return bondAddress;
+    }
+    ```
+
+## 🛠️ Uso del Sistema
+
+### Crear un nuevo Security Token
+
+```js
+const factory = await ethers.getContractAt("SecurityBondFactory", factoryAddress);
+const initData = /* datos de inicialización */;
+await factory.createBond(initData, beneficiaryAddress);
+```
+
+### Interactuar con un Security Token
+
+```js
+const token = await ethers.getContractAt("SecurityToken", tokenAddress);
+
+// Añadir a whitelist
+await token.addToWhitelist(userAddress);
+
+// Mint tokens
+await token.mint(userAddress, amount);
+
+// Pausar contrato
+await token.pause();
+
+// Ver registro de transacciones
+const record = await token.getTransactionRecord(transactionId);
+```
+
+### Actualizar la implementación
+
+```js
+// Actualizar todos los tokens a una nueva implementación
+const NewSecurityToken = await ethers.getContractFactory("SecurityTokenV2");
+await upgrades.upgradeBeacon(beaconAddress, NewSecurityToken);
+```
+
+## 🛡️ Consideraciones de Seguridad
+
+### Roles Críticos
+
+- El `DEFAULT_ADMIN_ROLE` tiene control total sobre el contrato
+- Los roles deben asignarse cuidadosamente y seguir el principio de menor privilegio
+- Considerar usar multi-sig para roles administrativos
+
+### Validaciones Importantes
+
+- Todas las direcciones deben estar en whitelist para recibir tokens
+- Las direcciones en blacklist están completamente bloqueadas
+- Las transacciones se registran automáticamente para auditoría
+
+### Actualizaciones
+
+- El patrón Beacon permite actualizar todos los tokens simultáneamente
+- Las actualizaciones deben probarse exhaustivamente en testnet
+- Mantener compatibilidad con el storage layout existente
+
+## 🧪 Testing
+
+### Estructura de Tests
+
+Los tests validan toda la funcionalidad del sistema usando el patrón BeaconProxy:
+
+```js
+// test/SecurityToken.test.js
+const { expect } = require("chai");
+const { ethers } = require("hardhat");
+
+describe("SecurityToken (BeaconProxy architecture)", function () {
+  let securityTokenImpl, beacon, factory, bond;
+  let admin, user1, user2;
+
+  before(async function () {
+     [admin, user1, user2] = await ethers.getSigners();
+     
+     // Desplegar implementación
+     const SecurityTokenFactory = await ethers.getContractFactory("SecurityToken");
+     securityTokenImpl = await SecurityTokenFactory.deploy();
+     await securityTokenImpl.waitForDeployment();
+
+     // Desplegar Beacon
+     const BeaconFactory = await ethers.getContractFactory("UpgradeableBeacon");
+     beacon = await BeaconFactory.deploy(
+        await securityTokenImpl.getAddress(), 
+        admin.address
+     );
+     await beacon.waitForDeployment();
+
+     // Desplegar Factory
+     const Factory = await ethers.getContractFactory("SecurityBondFactory");
+     factory = await Factory.deploy(await beacon.getAddress());
+     await factory.waitForDeployment();
+
+     // Crear un bond de prueba
+     const initData = securityTokenImpl.interface.encodeFunctionData("initialize", [
+        "TestBond", "TBND", ethers.parseUnits("1000000", 18),
+        "ISIN1234567890", "bond", "ES", admin.address
+     ]);
+
+     await factory.createBond(initData, user1.address);
+     const bondAddress = await factory.deployedBonds(0);
+     bond = await ethers.getContractAt("SecurityToken", bondAddress);
+  });
+
+  // Tests de funcionalidad...
+});
+```
+
+#### Casos de Prueba Principales
+
+- ✅ Despliegue correcto usando Factory
+- ✅ Minting y transferencias con whitelist
+- ✅ Registro automático de transacciones
+- ✅ Reversión de transacciones por ID
+- ✅ Bloqueo de transferencias sin whitelist
+- ✅ Control de roles y permisos
+- ✅ Funcionalidad de pausa/reanudación
+
+```bash
+# Ejecutar tests
+npx hardhat test
+
+# Coverage
+npx hardhat coverage
+```
 
 # Diamond Security Token
 
@@ -167,7 +582,7 @@ Contrato de inicialización que configura el estado inicial del security token.
 ### Script de Despliegue
 
 ```javascript
-// scripts/deploy.js
+// scripts/diamondDeploy.js
 const { ethers } = require("hardhat");
 
 async function main() {
@@ -319,10 +734,6 @@ npx hardhat run scripts/diamondDeploy.js --network <NETWORK_NAME>
 # Ejecutar todos los tests
 npx hardhat test
 
-# Ejecutar tests específicos
-npx hardhat test test/DiamondSecurityToken.test.js
-
-# Ejecutar con cobertura
 npx hardhat coverage
 ```
 
