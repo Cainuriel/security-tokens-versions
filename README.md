@@ -825,7 +825,7 @@ await diamondCut.diamondCut(cut, ethers.ZeroAddress, "0x");
 - [ ] Documentación verificada
 
 - **Emergency Procedures:** Establecer procedimientos claros para pausas y reversiones
-- **Monitoring:** Implementar monitoring para transacciones sospechosas – ver [monitoring/README.md](../monitoring/README.md)
+- **Monitoring:** Implementar monitoring para transacciones sospechosas – ver [monitoring](https://github.com/Cainuriel/security-tokens-versions/tree/main/monitoring)
 
 ---
 
