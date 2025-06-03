@@ -1,8 +1,9 @@
+
 const { ethers } = require("hardhat");
 
     async function main() {
       const [admin] = await ethers.getSigners();
-      console.log("Deploying contracts with account:", admin.address);
+      console.log("Deploying contracts with account:", admin);
 
       // 1. Deploy SecurityToken
       const SecurityTokenFactory = await ethers.getContractFactory("SecurityToken");
@@ -14,7 +15,7 @@ const { ethers } = require("hardhat");
 
       // 2. Desploy UpgradeableBeacon
       const BeaconFactory = await ethers.getContractFactory("UpgradeableBeacon");
-      const beacon = await BeaconFactory.deploy(implAddress, admin.address);
+      const beacon = await BeaconFactory.deploy(implAddress, admin);
       await beacon.waitForDeployment();
       
       const beaconAddress = await beacon.getAddress();
