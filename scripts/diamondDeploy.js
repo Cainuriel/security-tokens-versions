@@ -30,14 +30,12 @@ const DEPLOYMENT_CONFIG = {
 
 // Utility functions
 function getSelectors(contract) {
-  const signatures = Object.keys(contract.interface.functions);
-  const selectors = signatures.reduce((acc, val) => {
-    // Exclude init functions and internal functions
-    if (val !== 'init(bytes)' && !val.includes('Internal')) {
-      acc.push(contract.interface.getFunction(val).selector);
-    }
-    return acc;
-  }, []);
+
+  const functionFragments = contract.interface.fragments.filter(f => f.type === "function");
+//   console.log('functionFragments:', functionFragments.map(f => f.name));
+  const selectors = functionFragments
+    .filter(f => f.name !== "init")
+    .map(f => contract.interface.getFunction(f.name).selector);
   return selectors;
 }
 
@@ -52,7 +50,13 @@ async function saveDeploymentInfo(deploymentInfo, network) {
   }
   
   const filePath = path.join(deploymentsDir, `${network}.json`);
-  fs.writeFileSync(filePath, JSON.stringify(deploymentInfo, null, 2));
+  fs.writeFileSync(
+  filePath,
+  JSON.stringify(deploymentInfo, (key, value) =>
+    typeof value === 'bigint' ? value.toString() : value,
+    2
+    )
+  );
   console.log(`📄 Deployment info saved to: ${filePath}`);
 }
 
@@ -156,7 +160,7 @@ async function main() {
     const diamondCutAddress = await diamondCutFacet.getAddress();
     const diamondCutTx = await ethers.provider.getTransactionReceipt(diamondCutFacet.deploymentTransaction().hash);
     totalGasUsed += diamondCutTx.gasUsed;
-
+    
     deploymentInfo.facets.diamondCut = {
       address: diamondCutAddress,
       selectors: getSelectors(diamondCutFacet)
@@ -535,7 +539,7 @@ async function main() {
     console.error("\n🔍 Debugging Information:");
     console.error(`Network: ${network}`);
     console.error(`Deployer: ${deployer.address}`);
-    console.error(`Balance: ${ethers.formatEther(await ethers.provider.getBalance(deployer.address))} ETH`);
+    // console.error(`Balance: ${ethers.formatEther(await ethers.provider.getBalance(deployer.address))} ETH`);
     
     // Save partial deployment info if available
     if (deploymentInfo.contracts.diamond || Object.keys(deploymentInfo.facets).length > 0) {
@@ -562,3 +566,5 @@ if (require.main === module) {
 }
 
 module.exports = main;
+
+
