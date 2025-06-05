@@ -45,21 +45,19 @@ before(async function () {
 } catch (error) {
   console.error("❌ Error deploying UpgradeableBeacon:", error);
 }
-
  try {
-  const artifacts = await hre.artifacts.readArtifact("SecurityBondFactory");
+  const artifacts = await hre.artifacts.readArtifact("SecurityTokenFactory");
   console.log("Artifact target (bytecode):", artifacts.bytecode.slice(0, 10));
 
-  const Factory = await ethers.getContractFactory("SecurityBondFactory");
+  const Factory = await ethers.getContractFactory("SecurityTokenFactory");
   factory = await Factory.deploy(beaconAddress);
   await factory.waitForDeployment();
   factoryAddress = await factory.getAddress();
   // console.log("Beacon deployed at:", factoryAddress);
   // console.log(Factory.interface.format("full")); // muestra la firma del constructor
   } catch (error) {
-  console.error("❌ Error deploying SecurityBondFactory:", error);
-}
-    // Crear un bond para uso posterior
+  console.error("❌ Error deploying SecurityTokenFactory:", error);
+}    // Crear un token para uso posterior
     const initData = securityTokenImpl.interface.encodeFunctionData("initialize", [
       initParams.name,
       initParams.symbol,
@@ -70,15 +68,15 @@ before(async function () {
       admin.address,
     ]);
 
-    const tx = await factory.createBond(initData, user1.address);
+    const tx = await factory.createToken(initData, user1.address);
     await tx.wait();
-    bondAddress = await factory.deployedBonds(0);
+    bondAddress = await factory.deployedTokens(0);
     bond = await ethers.getContractAt("SecurityToken", bondAddress);
 });
 
 
 
-it("should deploy a new bond contract using the factory", async function () {
+it("should deploy a new token contract using the factory", async function () {
   // Codificamos la llamada a initialize usando el ABI REAL de la implementación
   const initData = securityTokenImpl.interface.encodeFunctionData("initialize", [
     initParams.name,
@@ -89,13 +87,12 @@ it("should deploy a new bond contract using the factory", async function () {
     initParams.jurisdiction,
     admin.address,
   ]);
-
   // Llamamos a la factory para crear el proxy
-  const tx = await factory.createBond(initData, user1.address);
+  const tx = await factory.createToken(initData, user1.address);
   await tx.wait();
 
   // Verificamos que el proxy ha sido desplegado correctamente
-  bondAddress = await factory.deployedBonds(0);
+  bondAddress = await factory.deployedTokens(0);
   expect(bondAddress).to.be.properAddress;
 
   console.log("SecurityToken proxy deployed at:", bondAddress);

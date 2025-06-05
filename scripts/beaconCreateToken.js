@@ -5,9 +5,8 @@ const IMPLEMENTATION_ADDRESS = "0xD30B19eF8Eae6f6646F1eF1F56f4442879F3CAAc"; //
 
   async function createSecurityToken() {
       const [admin] = await ethers.getSigners();
-      user1 = "0x717E34E5019AebE1A596Fd3cB1c1119aD6fD8B69"; // dev alastria 12
-      // Obtener las instancias de los contratos desplegados
-      const factory = await ethers.getContractAt("SecurityBondFactory", FACTORY_ADDRESS);
+      user1 = "0x717E34E5019AebE1A596Fd3cB1c1119aD6fD8B69"; // dev alastria 12      // Obtener las instancias de los contratos desplegados
+      const factory = await ethers.getContractAt("SecurityTokenFactory", FACTORY_ADDRESS);
       const securityTokenImpl = await ethers.getContractAt("SecurityToken", IMPLEMENTATION_ADDRESS);
       
       // Preparar datos de inicialización usando la implementación real
@@ -19,25 +18,21 @@ const IMPLEMENTATION_ADDRESS = "0xD30B19eF8Eae6f6646F1eF1F56f4442879F3CAAc"; //
          "bond",                  // instrumentType
          "ES",                    // jurisdiction
          admin.address            // admin
-      ]);
-
-      // Crear el token
-      const tx = await factory.createBond(initData, user1);
+      ]);      // Crear el token
+      const tx = await factory.createToken(initData, user1);
       const receipt = await tx.wait();
       
-      // Obtener la dirección del primer bond creado
-      const bondAddress = await factory.deployedBonds(0);
-      console.log("Security Token created at:", bondAddress);
-      
-      // Interactuar con el nuevo token
-      const bond = await ethers.getContractAt("SecurityToken", bondAddress);
-      
-      // Configuración inicial
-      await bond.addToWhitelist(admin.address);
-      await bond.addToWhitelist(user1);
+      // Obtener la dirección del primer token creado
+      const tokenAddress = await factory.deployedTokens(0);
+      console.log("Security Token created at:", tokenAddress);
+        // Interactuar con el nuevo token
+      const token = await ethers.getContractAt("SecurityToken", tokenAddress);
+        // Configuración inicial
+      await token.addToWhitelist(admin.address);
+      await token.addToWhitelist(user1);
       console.log("added to whitelist:", admin.address, user1);
       // Mint tokens iniciales
-      // await bond.mint(user1, ethers.parseUnits("1000", 18));
+      // await token.mint(user1, ethers.parseUnits("1000", 18));
       
       // console.log("Token configured and initial minting completed");
       

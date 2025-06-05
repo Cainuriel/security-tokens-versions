@@ -114,9 +114,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC165__factory>;
     getContractFactory(
-      name: "SecurityBondFactory",
+      name: "SecurityTokenFactory",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.SecurityBondFactory__factory>;
+    ): Promise<Contracts.SecurityTokenFactory__factory>;
     getContractFactory(
       name: "AdminFacet",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -300,10 +300,10 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IERC165>;
     getContractAt(
-      name: "SecurityBondFactory",
+      name: "SecurityTokenFactory",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
-    ): Promise<Contracts.SecurityBondFactory>;
+    ): Promise<Contracts.SecurityTokenFactory>;
     getContractAt(
       name: "AdminFacet",
       address: string | ethers.Addressable,
@@ -476,9 +476,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IERC165>;
     deployContract(
-      name: "SecurityBondFactory",
+      name: "SecurityTokenFactory",
       signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.SecurityBondFactory>;
+    ): Promise<Contracts.SecurityTokenFactory>;
     deployContract(
       name: "AdminFacet",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -662,10 +662,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IERC165>;
     deployContract(
-      name: "SecurityBondFactory",
+      name: "SecurityTokenFactory",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.SecurityBondFactory>;
+    ): Promise<Contracts.SecurityTokenFactory>;
     deployContract(
       name: "AdminFacet",
       args: any[],

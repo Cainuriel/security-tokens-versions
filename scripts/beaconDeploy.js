@@ -19,10 +19,8 @@ const { ethers } = require("hardhat");
       await beacon.waitForDeployment();
       
       const beaconAddress = await beacon.getAddress();
-      console.log("Beacon deployed at:", beaconAddress);
-
-      // 3. Deploy factory
-      const Factory = await ethers.getContractFactory("SecurityBondFactory");
+      console.log("Beacon deployed at:", beaconAddress);      // 3. Deploy factory
+      const Factory = await ethers.getContractFactory("SecurityTokenFactory");
       const factory = await Factory.deploy(beaconAddress);
       await factory.waitForDeployment();
       

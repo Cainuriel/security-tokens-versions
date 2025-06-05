@@ -203,7 +203,7 @@ This pattern implements a **flexible security token system** using OpenZeppelin'
 
 ## 🎯 What Does This System Create?
 
-**The SecurityBondFactory creates SecurityToken instances that can represent ANY type of financial instrument:**
+**The SecurityTokenFactory creates SecurityToken instances that can represent ANY type of financial instrument:**
 
 - 🏛️ **Bonds** (corporate, government, municipal)
 - 📈 **Equity Tokens** (tokenized shares, voting rights)
@@ -224,7 +224,7 @@ This pattern implements a **flexible security token system** using OpenZeppelin'
 ```
 1. SecurityToken Implementation  →  (deployed once, ~300kb)
 2. UpgradeableBeacon           →  (points to implementation)  
-3. SecurityBondFactory         →  (creates lightweight proxies)
+3. SecurityTokenFactory        →  (creates lightweight proxies)
 4. Multiple BeaconProxies      →  (each ~45kb, unique configs)
 ```
 
@@ -248,12 +248,12 @@ contract SecurityToken is
 }
 ```
 
-**2. SecurityBondFactory.sol** - Factory Contract
+**2. SecurityTokenFactory.sol** - Factory Contract
 ```solidity
 // Creates BeaconProxy instances pointing to SecurityToken
 // Each proxy = new independent security token
-contract SecurityBondFactory {
-    function createBond(bytes initData, address beneficiary) 
+contract SecurityTokenFactory {
+    function createToken(bytes initData, address beneficiary) 
         → new BeaconProxy → new SecurityToken instance
 }
 ```
@@ -282,7 +282,7 @@ beacon.upgradeTo(newImplementation) → ALL tokens upgraded
 contracts/
 ├── SecurityToken.sol           # Core implementation (ERC20 + compliance)
 ├── Beacon/
-│   ├── SecurityBondFactory.sol # Factory for creating token instances  
+│   ├── SecurityTokenFactory.sol # Factory for creating token instances  
 │   └── __CompileBeacon.sol     # Auxiliary for UpgradeableBeacon compilation
 └── ... (other patterns)
 ```
@@ -363,10 +363,9 @@ async function main() {
   
   const beaconAddress = await beacon.getAddress();
   console.log("✅ Beacon deployed at:", beaconAddress);
-
-  // 3. Deploy SecurityBondFactory (creates proxy instances)
-  console.log("🏭 Deploying SecurityBondFactory...");
-  const Factory = await ethers.getContractFactory("SecurityBondFactory");
+  // 3. Deploy SecurityTokenFactory (creates proxy instances)
+  console.log("🏭 Deploying SecurityTokenFactory...");
+  const Factory = await ethers.getContractFactory("SecurityTokenFactory");
   const factory = await Factory.deploy(beaconAddress);
   await factory.waitForDeployment();
   
@@ -397,7 +396,7 @@ main().catch((error) => {
       console.log("Beacon deployed at:", beaconAddress);
 
       // 3. Deploy Factory
-      const Factory = await ethers.getContractFactory("SecurityBondFactory");
+      const Factory = await ethers.getContractFactory("SecurityTokenFactory");
       const factory = await Factory.deploy(beaconAddress);
       await factory.waitForDeployment();
       
@@ -431,7 +430,7 @@ main().catch((error) => {
       const [admin, user1] = await ethers.getSigners();
       
       // Get instances of deployed contracts
-      const factory = await ethers.getContractAt("SecurityBondFactory", FACTORY_ADDRESS);
+      const factory = await ethers.getContractAt("SecurityTokenFactory", FACTORY_ADDRESS);
       const securityTokenImpl = await ethers.getContractAt("SecurityToken", IMPLEMENTATION_ADDRESS);
       
       // Prepare initialization data using the actual implementation
@@ -472,13 +471,13 @@ main().catch((error) => {
 
 ### 💼 Creating Different Financial Instruments
 
-The SecurityBondFactory can create various types of financial instruments, each with unique configuration. Here are practical examples:
+The SecurityTokenFactory can create various types of financial instruments, each with unique configuration. Here are practical examples:
 
 #### 🏛️ Corporate Bond Example
 
 ```js
 // Create a corporate bond with 5-year maturity
-const factory = await ethers.getContractAt("SecurityBondFactory", factoryAddress);
+const factory = await ethers.getContractAt("SecurityTokenFactory", factoryAddress);
 const securityTokenImpl = await ethers.getContractAt("SecurityToken", implementationAddress);
 
 const corporateBondData = securityTokenImpl.interface.encodeFunctionData("initialize", [
@@ -622,14 +621,14 @@ console.log("Suspicious transaction reversed");
 
 ```js
 // Managing multiple instruments from single factory
-const factory = await ethers.getContractAt("SecurityBondFactory", factoryAddress);
+const factory = await ethers.getContractAt("SecurityTokenFactory", factoryAddress);
 
 // Get all created instruments
-const totalBonds = await factory.getBondsCount();
-console.log(`Total instruments created: ${totalBonds}`);
+const totalTokens = await factory.getTokensCount();
+console.log(`Total instruments created: ${totalTokens}`);
 
 // Access each instrument
-for (let i = 0; i < totalBonds; i++) {
+for (let i = 0; i < totalTokens; i++) {
   const instrumentAddress = await factory.deployedBonds(i);
   const instrument = await ethers.getContractAt("SecurityToken", instrumentAddress);
   
@@ -687,14 +686,14 @@ console.log("🔄 Upgrading ALL tokens...");
 await beacon.upgradeTo(newImplAddress);
 
 // Verify upgrade across multiple tokens
-const factory = await ethers.getContractAt("SecurityBondFactory", factoryAddress);
-const totalTokens = await factory.getBondsCount();
+const factory = await ethers.getContractAt("SecurityTokenFactory", factoryAddress);
+const totalTokens = await factory.getTokensCount();
 
 console.log(`✅ ${totalTokens} tokens upgraded simultaneously!`);
 
 // All existing tokens now support new features without individual upgrades
 for (let i = 0; i < totalTokens; i++) {
-  const tokenAddress = await factory.deployedBonds(i);
+  const tokenAddress = await factory.deployedTokens(i);
   const upgradedToken = await ethers.getContractAt("SecurityTokenV2", tokenAddress);
   
   // Existing data preserved, new functions available
@@ -818,7 +817,7 @@ if (network === "mainnet") {
 // ✅ Recommended deployment sequence
 1. Deploy and verify Implementation on Etherscan
 2. Deploy UpgradeableBeacon pointing to Implementation  
-3. Deploy SecurityBondFactory pointing to Beacon
+3. Deploy SecurityTokenFactory pointing to Beacon
 4. Transfer beacon ownership to multi-sig
 5. Create first token and test all functions
 6. Document all addresses in README
@@ -1293,12 +1292,12 @@ This prevents the "Can't add function that already exists" error during deployme
 
 ### 🎯 Original Problem Solved
 
-**BEFORE:** Confusion about what SecurityBondFactory creates and unclear BeaconProxy architecture
-**AFTER:** Crystal clear documentation that SecurityBondFactory creates **any type of financial instrument**, not just bonds
+**BEFORE:** Confusion about what SecurityTokenFactory creates and unclear BeaconProxy architecture
+**AFTER:** Crystal clear documentation that SecurityTokenFactory creates **any type of financial instrument**, not just bonds
 
 ### 📖 Documentation Enhancements Completed
 
-#### 1. **SecurityBondFactory.sol** - Enhanced Contract Documentation
+#### 1. **SecurityTokenFactory.sol** - Enhanced Contract Documentation
 - ✅ **Comprehensive contract-level docs** explaining instrument types supported
 - ✅ **Detailed architecture flow** in comments with ASCII diagrams  
 - ✅ **Enhanced function documentation** with practical examples
@@ -1315,7 +1314,7 @@ This prevents the "Can't add function that already exists" error during deployme
 
 ### 🏗️ Key Architectural Clarifications Documented
 
-1. **SecurityBondFactory creates SecurityToken instances** that represent:
+1. **SecurityTokenFactory creates SecurityToken instances** that represent:
    - 🏛️ Corporate & Government Bonds
    - 📈 Equity & Share Tokens  
    - 🏢 Asset-Backed Securities
@@ -1344,5 +1343,5 @@ The documentation now provides:
 - **Step-by-step deployment guides** with scripts
 - **Comprehensive testing documentation**
 
-**Result:** Developers can now confidently deploy and manage multiple financial instrument tokens using the SecurityBondFactory system with full understanding of the architecture and capabilities.
+**Result:** Developers can now confidently deploy and manage multiple financial instrument tokens using the SecurityTokenFactory system with full understanding of the architecture and capabilities.
 
