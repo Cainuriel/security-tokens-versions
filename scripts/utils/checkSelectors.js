@@ -132,4 +132,5 @@ if (require.main === module) {
 
 module.exports = main;
 
- // npx hardhat run scripts/checkSelectors.js
+ // npx hardhat run scripts/utils/checkSelectors.js
+ 

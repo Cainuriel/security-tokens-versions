@@ -607,18 +607,18 @@ npx hardhat compile
 
 # Run deployment script
 npx hardhat run scripts/diamondDeploy.js --network <NETWORK_NAME>
-
 ```
 
-### Recent Improvements
+### Project Structure
 
-The deployment script now includes:
-- ✅ **Function selector conflict resolution** - Removed duplicate functions between facets
-- ✅ **Comprehensive error handling** - Custom errors throughout all facets
-- ✅ **Gas optimization** - Efficient selector mapping and storage usage
-- ✅ **Detailed logging** - Complete deployment information and verification
-
----
+```
+scripts/
+├── beaconDeploy.js       ← Beacon pattern deployment
+├── diamondDeploy.js      ← Diamond pattern deployment  
+├── beaconCreateToken.js  ← Token creation tool
+└── utils/
+    └── checkSelectors.js ← Analysis tool for selector conflicts
+```
 
 ## 🧪 Testing
 
@@ -694,16 +694,49 @@ await diamondCut.diamondCut(cut, ethers.ZeroAddress, "0x");
 
 ## 🔧 Development Tools
 
-### Function Selector Checker
+### Function Selector Checker (`checkSelectors.js`)
 
-A utility script to detect function selector conflicts:
+A specialized analysis tool that prevents function selector conflicts in Diamond deployments:
 
+**Location**: `scripts/utils/checkSelectors.js`
+
+**Purpose**: 
+- 🔍 **Analyzes all facets** for potential function selector collisions
+- 📊 **Generates detailed reports** of all function selectors per facet
+- ⚠️ **Detects conflicts** before deployment to prevent failures
+- 📈 **Provides statistics** on total facets and unique selectors
+
+**Usage**:
 ```bash
 # Check for duplicate selectors
-npx hardhat run scripts/checkSelectors.js
+npx hardhat run scripts/utils/checkSelectors.js
 ```
 
-This tool helps prevent the "Can't add function that already exists" error during deployment.
+**Output Example**:
+```
+🔍 Checking Function Selectors for All Facets...
+
+📋 ERC20Facet Functions:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  transfer: 0xa9059cbb
+  approve: 0x095ea7b3
+  ...
+
+✅ NO DUPLICATE SELECTORS FOUND!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+All function selectors are unique. Diamond deployment should work.
+
+📊 SUMMARY:
+Total Facets: 7
+Total Function Selectors: 69
+Unique Selectors: 69
+```
+
+**Why This Tool is Essential**:
+- Prevents the common "Can't add function that already exists" error
+- Saves time by detecting conflicts before expensive deployments
+- Ensures Diamond architecture integrity
+- Critical for maintaining modular facet system
 
 ## 🛡️ Security Features
 
@@ -751,7 +784,7 @@ During development, we encountered function selector conflicts between facets. T
 A utility script is available to check for selector conflicts:
 
 ```bash
-npx hardhat run scripts/checkSelectors.js
+npx hardhat run scripts/utils/checkSelectors.js
 ```
 
 This prevents the "Can't add function that already exists" error during deployment.
@@ -760,7 +793,7 @@ This prevents the "Can't add function that already exists" error during deployme
 
 ## 📊 Production Deployment Status
 
-### Alastria Network Deployment ✅
+### Alastria Network Deployment (This network is not included in the hardhat.config.ts)
 
 - **Status**: Successfully deployed and verified
 - **Diamond Address**: `0x0461df2b6ce85402abcD00e44A0B67fc6d72b6CE`
@@ -778,21 +811,6 @@ This prevents the "Can't add function that already exists" error during deployme
 - ✅ Transaction recording and reversal
 - ✅ Emergency pause functionality
 
----
-
-## 🔄 Recent Improvements
-
-### Test Framework Updates
-- **Error Handling**: Migrated from string-based error assertions to custom error assertions
-- **Coverage**: Achieved 100% test coverage across all facets
-- **Custom Errors**: Implemented gas-efficient custom errors throughout the codebase
-
-### Architecture Enhancements
-- **Modularity**: Improved separation of concerns between facets
-- **Gas Optimization**: Reduced deployment costs through selector optimization
-- **Code Quality**: Enhanced readability and maintainability
-
----
 
 ## 📚 References
 

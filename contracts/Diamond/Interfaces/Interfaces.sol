@@ -89,14 +89,6 @@ interface IDiamondCut {
         address _init,
         bytes calldata _calldata
     ) external;
-
-    /**
-     * @notice Emitted when a diamond cut is executed
-     * @param _diamondCut The array of facet cuts that were executed
-     * @param _init The address used for initialization
-     * @param _calldata The initialization call data
-     */
-    event DiamondCut(FacetCut[] _diamondCut, address _init, bytes _calldata);
 }
 
 /**

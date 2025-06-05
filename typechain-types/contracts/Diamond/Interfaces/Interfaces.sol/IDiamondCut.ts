@@ -8,7 +8,6 @@ import type {
   FunctionFragment,
   Result,
   Interface,
-  EventFragment,
   AddressLike,
   ContractRunner,
   ContractMethod,
@@ -18,7 +17,6 @@ import type {
   TypedContractEvent,
   TypedDeferredTopicFilter,
   TypedEventLog,
-  TypedLogDescription,
   TypedListener,
   TypedContractMethod,
 } from "../../../../common";
@@ -40,36 +38,12 @@ export declare namespace IDiamondCut {
 export interface IDiamondCutInterface extends Interface {
   getFunction(nameOrSignature: "diamondCut"): FunctionFragment;
 
-  getEvent(nameOrSignatureOrTopic: "DiamondCut"): EventFragment;
-
   encodeFunctionData(
     functionFragment: "diamondCut",
     values: [IDiamondCut.FacetCutStruct[], AddressLike, BytesLike]
   ): string;
 
   decodeFunctionResult(functionFragment: "diamondCut", data: BytesLike): Result;
-}
-
-export namespace DiamondCutEvent {
-  export type InputTuple = [
-    _diamondCut: IDiamondCut.FacetCutStruct[],
-    _init: AddressLike,
-    _calldata: BytesLike
-  ];
-  export type OutputTuple = [
-    _diamondCut: IDiamondCut.FacetCutStructOutput[],
-    _init: string,
-    _calldata: string
-  ];
-  export interface OutputObject {
-    _diamondCut: IDiamondCut.FacetCutStructOutput[];
-    _init: string;
-    _calldata: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export interface IDiamondCut extends BaseContract {
@@ -141,24 +115,5 @@ export interface IDiamondCut extends BaseContract {
     "nonpayable"
   >;
 
-  getEvent(
-    key: "DiamondCut"
-  ): TypedContractEvent<
-    DiamondCutEvent.InputTuple,
-    DiamondCutEvent.OutputTuple,
-    DiamondCutEvent.OutputObject
-  >;
-
-  filters: {
-    "DiamondCut(tuple[],address,bytes)": TypedContractEvent<
-      DiamondCutEvent.InputTuple,
-      DiamondCutEvent.OutputTuple,
-      DiamondCutEvent.OutputObject
-    >;
-    DiamondCut: TypedContractEvent<
-      DiamondCutEvent.InputTuple,
-      DiamondCutEvent.OutputTuple,
-      DiamondCutEvent.OutputObject
-    >;
-  };
+  filters: {};
 }

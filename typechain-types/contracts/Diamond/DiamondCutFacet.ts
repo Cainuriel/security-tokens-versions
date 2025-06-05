@@ -42,11 +42,7 @@ export interface DiamondCutFacetInterface extends Interface {
     nameOrSignature: "diamondCut" | "diamondCutFacetVersion"
   ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic:
-      | "DiamondCut(tuple[],address,bytes)"
-      | "DiamondCut(tuple[],address,bytes)"
-  ): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "DiamondCut"): EventFragment;
 
   encodeFunctionData(
     functionFragment: "diamondCut",
@@ -64,7 +60,7 @@ export interface DiamondCutFacetInterface extends Interface {
   ): Result;
 }
 
-export namespace DiamondCut_tuple_array_address_bytes_Event {
+export namespace DiamondCutEvent {
   export type InputTuple = [
     _diamondCut: IDiamondCut.FacetCutStruct[],
     _init: AddressLike,
@@ -84,15 +80,6 @@ export namespace DiamondCut_tuple_array_address_bytes_Event {
   export type Filter = TypedDeferredTopicFilter<Event>;
   export type Log = TypedEventLog<Event>;
   export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace DiamondCut_tuple_array_address_bytes_Event {
-  
-  export interface OutputObject {
-    _diamondCut: IDiamondCut.FacetCutStructOutput[];
-    _init: string;
-    _calldata: string;
-  }
 }
 
 export interface DiamondCutFacet extends BaseContract {
@@ -170,26 +157,23 @@ export interface DiamondCutFacet extends BaseContract {
   ): TypedContractMethod<[], [string], "view">;
 
   getEvent(
-    key: "DiamondCut(tuple[],address,bytes)"
+    key: "DiamondCut"
   ): TypedContractEvent<
-    DiamondCut_tuple_array_address_bytes_Event.InputTuple,
-    DiamondCut_tuple_array_address_bytes_Event.OutputTuple,
-    DiamondCut_tuple_array_address_bytes_Event.OutputObject
-  >;
-  getEvent(
-    key: "DiamondCut(tuple[],address,bytes)"
-  ): TypedContractEvent<
-    DiamondCut_tuple_array_address_bytes_Event.InputTuple,
-    DiamondCut_tuple_array_address_bytes_Event.OutputTuple,
-    DiamondCut_tuple_array_address_bytes_Event.OutputObject
+    DiamondCutEvent.InputTuple,
+    DiamondCutEvent.OutputTuple,
+    DiamondCutEvent.OutputObject
   >;
 
   filters: {
     "DiamondCut(tuple[],address,bytes)": TypedContractEvent<
-      DiamondCut_tuple_array_address_bytes_Event.InputTuple,
-      DiamondCut_tuple_array_address_bytes_Event.OutputTuple,
-      DiamondCut_tuple_array_address_bytes_Event.OutputObject
+      DiamondCutEvent.InputTuple,
+      DiamondCutEvent.OutputTuple,
+      DiamondCutEvent.OutputObject
     >;
-  
+    DiamondCut: TypedContractEvent<
+      DiamondCutEvent.InputTuple,
+      DiamondCutEvent.OutputTuple,
+      DiamondCutEvent.OutputObject
+    >;
   };
 }

@@ -69,9 +69,7 @@ library LibDiamond {
      * @param previousOwner The address of the previous owner
      * @param newOwner The address of the new owner
      */
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-    /**
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);    /**
      * @notice Emitted when a diamond cut is executed
      * @param _diamondCut The array of facet cuts that were executed
      * @param _init The address used for initialization
