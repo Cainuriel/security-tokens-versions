@@ -6,9 +6,22 @@ import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol"
 
 /**
  * @title SecurityBondFactory
- * @dev Factory contract for creating SecurityToken instances using BeaconProxy for upgradeability
- * @notice This contract allows creating multiple instances of SecurityToken contracts
- *         that can be upgraded through the beacon proxy pattern
+ * @dev Factory contract for creating SecurityToken instances using BeaconProxy pattern for upgradeability
+ * @notice This contract creates multiple SecurityToken instances that can represent different financial instruments:
+ *         - Bonds (debt securities)
+ *         - Equity tokens (stock-like instruments)
+ *         - Asset-backed securities
+ *         - Other regulated financial instruments
+ *         
+ *         Each created token is a BeaconProxy that points to the same implementation contract,
+ *         allowing all tokens to be upgraded simultaneously through the beacon pattern.
+ *         
+ * @dev Architecture Flow:
+ *      1. SecurityToken Implementation → deployed once
+ *      2. UpgradeableBeacon → points to implementation
+ *      3. SecurityBondFactory → creates BeaconProxy instances
+ *      4. Each BeaconProxy → independent SecurityToken with unique configuration
+ *      
  * @author ISBE Security Tokens Team
  */
 contract SecurityBondFactory is Ownable {
@@ -17,32 +30,29 @@ contract SecurityBondFactory is Ownable {
     // =============================================================
     
     /// @notice The beacon contract address that contains the implementation
-    address public immutable beacon;
-
-    /// @notice Mapping from bond index to deployed bond address
+    address public immutable beacon;    /// @notice Mapping from security token index to deployed token address
     mapping(uint256 => address) public deployedBonds;
     
-    /// @notice Mapping from beneficiary address to total bonds created for them
+    /// @notice Mapping from beneficiary address to total security tokens created for them
     mapping(address => uint256) public totalOfBondsCreatedByBeneficiary;
     
-    /// @notice Mapping from bond address to its index in the deployedBonds array
+    /// @notice Mapping from security token address to its index in the deployedBonds array
     mapping(address => uint256) public indexOfDeployedBonds;
     
-    /// @notice Total number of bonds created by this factory
+    /// @notice Total number of security tokens created by this factory
     uint256 public totalOfBondsCreated;
 
     // =============================================================
     //                           EVENTS
     // =============================================================
-    
-    /// @notice Emitted when a new bond is created
-    /// @param bondProxy The address of the newly created bond proxy
-    /// @param beneficiary The address of the beneficiary for whom the bond was created
-    /// @param bondIndex The index of the bond in the deployedBonds mapping
+      /// @notice Emitted when a new security token is created
+    /// @param tokenProxy The address of the newly created security token proxy
+    /// @param beneficiary The address of the beneficiary for whom the token was created
+    /// @param tokenIndex The index of the security token in the deployedBonds mapping
     event BondCreated(
-        address indexed bondProxy, 
+        address indexed tokenProxy, 
         address indexed beneficiary, 
-        uint256 indexed bondIndex
+        uint256 indexed tokenIndex
     );
 
     // =============================================================
@@ -54,8 +64,7 @@ contract SecurityBondFactory is Ownable {
     
     /// @notice Thrown when beneficiary address is zero
     error InvalidBeneficiaryAddress();
-    
-    /// @notice Thrown when bond index is out of bounds
+      /// @notice Thrown when security token index is out of bounds
     error BondIndexOutOfBounds(uint256 index);
 
     // =============================================================
@@ -75,13 +84,33 @@ contract SecurityBondFactory is Ownable {
     // =============================================================
     //                         FACTORY FUNCTIONS
     // =============================================================
-    
-    /**
-     * @notice Creates a new SecurityToken bond using BeaconProxy
-     * @dev Only the owner can create new bonds
-     * @param initData The initialization data to be passed to the SecurityToken contract
-     * @param beneficiary The address that will benefit from this bond creation
-     * @return The address of the newly created bond proxy
+      /**
+     * @notice Creates a new SecurityToken instance using BeaconProxy pattern
+     * @dev Only the owner can create new security tokens. Each token created is a BeaconProxy
+     *      that delegates calls to the implementation contract stored in the beacon.
+     *      This allows all created tokens to be upgraded simultaneously.
+     * 
+     * @param initData The initialization data to be passed to the SecurityToken contract.
+     *                 This should be the encoded call to SecurityToken.initialize() with:
+     *                 - name: Token name (e.g., "Corporate Bond 2024")
+     *                 - symbol: Token symbol (e.g., "CB24")
+     *                 - cap: Maximum token supply
+     *                 - isin: International Securities Identification Number
+     *                 - instrumentType: Type of instrument ("bond", "equity", "debt", etc.)
+     *                 - jurisdiction: Legal jurisdiction code (e.g., "US", "EU", "ES")
+     *                 - admin: Address that will have admin privileges
+     * 
+     * @param beneficiary The address that will benefit from this token creation.
+     *                    This is used for tracking and can be different from the admin.
+     * 
+     * @return The address of the newly created SecurityToken proxy
+     * 
+     * @dev Example usage:
+     *      bytes memory initData = abi.encodeWithSignature(
+     *          "initialize(string,string,uint256,string,string,string,address)",
+     *          "Corporate Bond 2024", "CB24", 1000000e18, "US0123456789", "bond", "US", adminAddress
+     *      );
+     *      address newToken = factory.createBond(initData, beneficiaryAddress);
      */
     function createBond(
         bytes memory initData, 
@@ -89,11 +118,11 @@ contract SecurityBondFactory is Ownable {
     ) external onlyOwner returns (address) {
         if (beneficiary == address(0)) revert InvalidBeneficiaryAddress();
         
-        // Create new BeaconProxy instance
+        // Create new BeaconProxy instance - this creates a new SecurityToken
         BeaconProxy proxy = new BeaconProxy(beacon, initData);
         address proxyAddress = address(proxy);
 
-        // Store bond information
+        // Store security token information
         deployedBonds[totalOfBondsCreated] = proxyAddress;
         indexOfDeployedBonds[proxyAddress] = totalOfBondsCreated;
         
@@ -108,11 +137,10 @@ contract SecurityBondFactory is Ownable {
     // =============================================================
     //                         VIEW FUNCTIONS
     // =============================================================
-    
-    /**
-     * @notice Gets the address of a bond by its index
-     * @param index The index of the bond to query
-     * @return The address of the bond at the given index
+      /**
+     * @notice Gets the address of a security token by its index
+     * @param index The index of the security token to query
+     * @return The address of the security token at the given index
      */
     function getBondByIndex(uint256 index) external view returns (address) {
         if (index >= totalOfBondsCreated) revert BondIndexOutOfBounds(index);
@@ -120,27 +148,27 @@ contract SecurityBondFactory is Ownable {
     }
 
     /**
-     * @notice Gets the total number of bonds created for a specific beneficiary
+     * @notice Gets the total number of security tokens created for a specific beneficiary
      * @param beneficiary The address of the beneficiary
-     * @return The total number of bonds created for the beneficiary
+     * @return The total number of security tokens created for the beneficiary
      */
     function getBondsCountByBeneficiary(address beneficiary) external view returns (uint256) {
         return totalOfBondsCreatedByBeneficiary[beneficiary];
     }
 
     /**
-     * @notice Gets the index of a bond by its address
-     * @param bondAddress The address of the bond
-     * @return The index of the bond
+     * @notice Gets the index of a security token by its address
+     * @param bondAddress The address of the security token
+     * @return The index of the security token
      */
     function getBondIndex(address bondAddress) external view returns (uint256) {
         return indexOfDeployedBonds[bondAddress];
     }
 
     /**
-     * @notice Gets all deployed bond addresses
-     * @dev This function can be gas-intensive for large numbers of bonds
-     * @return bonds Array of all deployed bond addresses
+     * @notice Gets all deployed security token addresses
+     * @dev This function can be gas-intensive for large numbers of tokens
+     * @return bonds Array of all deployed security token addresses
      */
     function getAllBonds() external view returns (address[] memory bonds) {
         bonds = new address[](totalOfBondsCreated);
@@ -151,11 +179,11 @@ contract SecurityBondFactory is Ownable {
     }
 
     /**
-     * @notice Gets a paginated list of deployed bonds
+     * @notice Gets a paginated list of deployed security tokens
      * @param offset The starting index for pagination
-     * @param limit The maximum number of bonds to return
-     * @return bonds Array of bond addresses within the specified range
-     * @return total The total number of bonds deployed
+     * @param limit The maximum number of tokens to return
+     * @return bonds Array of security token addresses within the specified range
+     * @return total The total number of security tokens deployed
      */
     function getBondsPaginated(
         uint256 offset, 
@@ -186,12 +214,10 @@ contract SecurityBondFactory is Ownable {
      */
     function version() external pure returns (string memory) {
         return "1.0.0";
-    }
-
-    /**
-     * @notice Checks if a given address is a bond created by this factory
+    }    /**
+     * @notice Checks if a given address is a security token created by this factory
      * @param bondAddress The address to check
-     * @return True if the address is a bond created by this factory, false otherwise
+     * @return True if the address is a security token created by this factory, false otherwise
      */
     function isBondCreatedByFactory(address bondAddress) external view returns (bool) {
         uint256 index = indexOfDeployedBonds[bondAddress];
