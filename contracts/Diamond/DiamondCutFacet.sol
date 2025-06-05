@@ -54,25 +54,7 @@ contract DiamondCutFacet is IDiamondCut {
     /**
      * @notice Returns the version of this facet contract
      * @return The version string
-     */
-    function diamondCutFacetVersion() external pure returns (string memory) {
+     */    function diamondCutFacetVersion() external pure returns (string memory) {
         return VERSION;
-    }
-
-    /**
-     * @notice Returns the current contract owner
-     * @return The address of the contract owner
-     */
-    function owner() external view returns (address) {
-        return LibDiamond.contractOwner();
-    }
-
-    /**
-     * @notice Checks if an address is the contract owner
-     * @param account The address to check
-     * @return Whether the address is the contract owner
-     */
-    function isOwner(address account) external view returns (bool) {
-        return LibDiamond.contractOwner() == account;
     }
 }
