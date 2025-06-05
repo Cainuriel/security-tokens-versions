@@ -40,3 +40,5 @@ const { ethers } = require("hardhat");
       console.error(error);
       process.exitCode = 1;
     });
+
+      // npx hardhat run scripts/beaconDeploy.js --network <network_name>

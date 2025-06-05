@@ -567,4 +567,4 @@ if (require.main === module) {
 
 module.exports = main;
 
-
+  // npx hardhat run scripts/diamondDeploy.js --network <network_name>
