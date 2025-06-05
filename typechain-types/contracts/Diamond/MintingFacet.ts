@@ -24,23 +24,76 @@ import type {
 } from "../../common";
 
 export interface MintingFacetInterface extends Interface {
-  getFunction(nameOrSignature: "burn" | "burnFrom" | "mint"): FunctionFragment;
+  getFunction(
+    nameOrSignature:
+      | "batchMint"
+      | "burn"
+      | "burnFrom"
+      | "burnableAmount"
+      | "canMint"
+      | "getMintingInfo"
+      | "mint"
+      | "mintableAmount"
+      | "mintingFacetVersion"
+  ): FunctionFragment;
 
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 
+  encodeFunctionData(
+    functionFragment: "batchMint",
+    values: [AddressLike[], BigNumberish[]]
+  ): string;
   encodeFunctionData(functionFragment: "burn", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "burnFrom",
     values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "burnableAmount",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "canMint",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getMintingInfo",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "mint",
     values: [AddressLike, BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "mintableAmount",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mintingFacetVersion",
+    values?: undefined
+  ): string;
 
+  decodeFunctionResult(functionFragment: "batchMint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burnFrom", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "burnableAmount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "canMint", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getMintingInfo",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "mintableAmount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "mintingFacetVersion",
+    data: BytesLike
+  ): Result;
 }
 
 export namespace TransferEvent {
@@ -104,6 +157,12 @@ export interface MintingFacet extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  batchMint: TypedContractMethod<
+    [recipients: AddressLike[], amounts: BigNumberish[]],
+    [void],
+    "nonpayable"
+  >;
+
   burn: TypedContractMethod<[amount: BigNumberish], [void], "nonpayable">;
 
   burnFrom: TypedContractMethod<
@@ -112,16 +171,43 @@ export interface MintingFacet extends BaseContract {
     "nonpayable"
   >;
 
+  burnableAmount: TypedContractMethod<[account: AddressLike], [bigint], "view">;
+
+  canMint: TypedContractMethod<[amount: BigNumberish], [boolean], "view">;
+
+  getMintingInfo: TypedContractMethod<
+    [],
+    [
+      [bigint, bigint, bigint] & {
+        totalSupply: bigint;
+        cap: bigint;
+        mintable: bigint;
+      }
+    ],
+    "view"
+  >;
+
   mint: TypedContractMethod<
     [to: AddressLike, amount: BigNumberish],
     [void],
     "nonpayable"
   >;
 
+  mintableAmount: TypedContractMethod<[], [bigint], "view">;
+
+  mintingFacetVersion: TypedContractMethod<[], [string], "view">;
+
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
 
+  getFunction(
+    nameOrSignature: "batchMint"
+  ): TypedContractMethod<
+    [recipients: AddressLike[], amounts: BigNumberish[]],
+    [void],
+    "nonpayable"
+  >;
   getFunction(
     nameOrSignature: "burn"
   ): TypedContractMethod<[amount: BigNumberish], [void], "nonpayable">;
@@ -133,12 +219,37 @@ export interface MintingFacet extends BaseContract {
     "nonpayable"
   >;
   getFunction(
+    nameOrSignature: "burnableAmount"
+  ): TypedContractMethod<[account: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "canMint"
+  ): TypedContractMethod<[amount: BigNumberish], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "getMintingInfo"
+  ): TypedContractMethod<
+    [],
+    [
+      [bigint, bigint, bigint] & {
+        totalSupply: bigint;
+        cap: bigint;
+        mintable: bigint;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
     nameOrSignature: "mint"
   ): TypedContractMethod<
     [to: AddressLike, amount: BigNumberish],
     [void],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "mintableAmount"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "mintingFacetVersion"
+  ): TypedContractMethod<[], [string], "view">;
 
   getEvent(
     key: "Transfer"

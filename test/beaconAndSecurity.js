@@ -136,10 +136,9 @@ it("should allow minting and transferring if whitelisted", async function () {
     // console.log(`newBalance`, newBalance);
     expect(newBalance).to.equal(prevBalance + tx.amount);
   });
-
   it("should block transfer if recipient is not whitelisted", async function () {
     await expect(
       bond.connect(user1).transfer(user2.address, ethers.parseUnits("100", 18))
-    ).to.be.revertedWith("Recipient is not whitelisted");
+    ).to.be.revertedWithCustomError(bond, "RecipientNotWhitelisted");
   });
 });

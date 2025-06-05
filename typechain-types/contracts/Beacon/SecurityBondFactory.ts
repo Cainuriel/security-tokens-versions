@@ -29,12 +29,19 @@ export interface SecurityBondFactoryInterface extends Interface {
       | "beacon"
       | "createBond"
       | "deployedBonds"
+      | "getAllBonds"
+      | "getBondByIndex"
+      | "getBondIndex"
+      | "getBondsCountByBeneficiary"
+      | "getBondsPaginated"
       | "indexOfDeployedBonds"
+      | "isBondCreatedByFactory"
       | "owner"
       | "renounceOwnership"
       | "totalOfBondsCreated"
       | "totalOfBondsCreatedByBeneficiary"
       | "transferOwnership"
+      | "version"
   ): FunctionFragment;
 
   getEvent(
@@ -51,7 +58,31 @@ export interface SecurityBondFactoryInterface extends Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "getAllBonds",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getBondByIndex",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getBondIndex",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getBondsCountByBeneficiary",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getBondsPaginated",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "indexOfDeployedBonds",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isBondCreatedByFactory",
     values: [AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
@@ -71,6 +102,7 @@ export interface SecurityBondFactoryInterface extends Interface {
     functionFragment: "transferOwnership",
     values: [AddressLike]
   ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "beacon", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "createBond", data: BytesLike): Result;
@@ -79,7 +111,31 @@ export interface SecurityBondFactoryInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getAllBonds",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getBondByIndex",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getBondIndex",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getBondsCountByBeneficiary",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getBondsPaginated",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "indexOfDeployedBonds",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "isBondCreatedByFactory",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
@@ -99,14 +155,24 @@ export interface SecurityBondFactoryInterface extends Interface {
     functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 }
 
 export namespace BondCreatedEvent {
-  export type InputTuple = [bondProxy: AddressLike, beneficiary: AddressLike];
-  export type OutputTuple = [bondProxy: string, beneficiary: string];
+  export type InputTuple = [
+    bondProxy: AddressLike,
+    beneficiary: AddressLike,
+    bondIndex: BigNumberish
+  ];
+  export type OutputTuple = [
+    bondProxy: string,
+    beneficiary: string,
+    bondIndex: bigint
+  ];
   export interface OutputObject {
     bondProxy: string;
     beneficiary: string;
+    bondIndex: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -180,9 +246,37 @@ export interface SecurityBondFactory extends BaseContract {
 
   deployedBonds: TypedContractMethod<[arg0: BigNumberish], [string], "view">;
 
+  getAllBonds: TypedContractMethod<[], [string[]], "view">;
+
+  getBondByIndex: TypedContractMethod<[index: BigNumberish], [string], "view">;
+
+  getBondIndex: TypedContractMethod<
+    [bondAddress: AddressLike],
+    [bigint],
+    "view"
+  >;
+
+  getBondsCountByBeneficiary: TypedContractMethod<
+    [beneficiary: AddressLike],
+    [bigint],
+    "view"
+  >;
+
+  getBondsPaginated: TypedContractMethod<
+    [offset: BigNumberish, limit: BigNumberish],
+    [[string[], bigint] & { bonds: string[]; total: bigint }],
+    "view"
+  >;
+
   indexOfDeployedBonds: TypedContractMethod<
     [arg0: AddressLike],
     [bigint],
+    "view"
+  >;
+
+  isBondCreatedByFactory: TypedContractMethod<
+    [bondAddress: AddressLike],
+    [boolean],
     "view"
   >;
 
@@ -204,6 +298,8 @@ export interface SecurityBondFactory extends BaseContract {
     "nonpayable"
   >;
 
+  version: TypedContractMethod<[], [string], "view">;
+
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
@@ -222,8 +318,30 @@ export interface SecurityBondFactory extends BaseContract {
     nameOrSignature: "deployedBonds"
   ): TypedContractMethod<[arg0: BigNumberish], [string], "view">;
   getFunction(
+    nameOrSignature: "getAllBonds"
+  ): TypedContractMethod<[], [string[]], "view">;
+  getFunction(
+    nameOrSignature: "getBondByIndex"
+  ): TypedContractMethod<[index: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "getBondIndex"
+  ): TypedContractMethod<[bondAddress: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getBondsCountByBeneficiary"
+  ): TypedContractMethod<[beneficiary: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getBondsPaginated"
+  ): TypedContractMethod<
+    [offset: BigNumberish, limit: BigNumberish],
+    [[string[], bigint] & { bonds: string[]; total: bigint }],
+    "view"
+  >;
+  getFunction(
     nameOrSignature: "indexOfDeployedBonds"
   ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "isBondCreatedByFactory"
+  ): TypedContractMethod<[bondAddress: AddressLike], [boolean], "view">;
   getFunction(
     nameOrSignature: "owner"
   ): TypedContractMethod<[], [string], "view">;
@@ -239,6 +357,9 @@ export interface SecurityBondFactory extends BaseContract {
   getFunction(
     nameOrSignature: "transferOwnership"
   ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [string], "view">;
 
   getEvent(
     key: "BondCreated"
@@ -256,7 +377,7 @@ export interface SecurityBondFactory extends BaseContract {
   >;
 
   filters: {
-    "BondCreated(address,address)": TypedContractEvent<
+    "BondCreated(address,address,uint256)": TypedContractEvent<
       BondCreatedEvent.InputTuple,
       BondCreatedEvent.OutputTuple,
       BondCreatedEvent.OutputObject

@@ -16,6 +16,55 @@ import type {
 
 const _abi = [
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "facet",
+        type: "address",
+      },
+    ],
+    name: "FacetHasNoCode",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes4",
+        name: "selector",
+        type: "bytes4",
+      },
+    ],
+    name: "FunctionAlreadyExists",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes4",
+        name: "selector",
+        type: "bytes4",
+      },
+    ],
+    name: "FunctionDoesNotExist",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "caller",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+    ],
+    name: "NotContractOwner",
+    type: "error",
+  },
+  {
     anonymous: false,
     inputs: [
       {
@@ -79,7 +128,7 @@ const _abi = [
 ] as const;
 
 const _bytecode =
-  "0x60566050600b82828239805160001a6073146043577f4e487b7100000000000000000000000000000000000000000000000000000000600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220de5ce72785632fe6d2598bcabea6d123e39acf0ceffbbdfbbe4831891c8a61fc64736f6c634300081c0033";
+  "0x60566037600b82828239805160001a607314602a57634e487b7160e01b600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea26469706673582212203de4a2cf8fa4a6c2f599df93b5781b412420054690d224f978f274f0aaed0ff164736f6c634300081c0033";
 
 type LibDiamondConstructorParams =
   | [signer?: Signer]

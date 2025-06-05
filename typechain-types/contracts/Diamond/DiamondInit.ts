@@ -8,6 +8,7 @@ import type {
   FunctionFragment,
   Result,
   Interface,
+  EventFragment,
   AddressLike,
   ContractRunner,
   ContractMethod,
@@ -17,19 +18,64 @@ import type {
   TypedContractEvent,
   TypedDeferredTopicFilter,
   TypedEventLog,
+  TypedLogDescription,
   TypedListener,
   TypedContractMethod,
 } from "../../common";
 
 export interface DiamondInitInterface extends Interface {
-  getFunction(nameOrSignature: "init"): FunctionFragment;
+  getFunction(nameOrSignature: "diamondInitVersion" | "init"): FunctionFragment;
 
+  getEvent(nameOrSignatureOrTopic: "DiamondInitialized"): EventFragment;
+
+  encodeFunctionData(
+    functionFragment: "diamondInitVersion",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "init",
     values: [string, string, BigNumberish, string, string, string, AddressLike]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "diamondInitVersion",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "init", data: BytesLike): Result;
+}
+
+export namespace DiamondInitializedEvent {
+  export type InputTuple = [
+    name: string,
+    symbol: string,
+    cap: BigNumberish,
+    isin: string,
+    instrumentType: string,
+    jurisdiction: string,
+    admin: AddressLike
+  ];
+  export type OutputTuple = [
+    name: string,
+    symbol: string,
+    cap: bigint,
+    isin: string,
+    instrumentType: string,
+    jurisdiction: string,
+    admin: string
+  ];
+  export interface OutputObject {
+    name: string;
+    symbol: string;
+    cap: bigint;
+    isin: string;
+    instrumentType: string;
+    jurisdiction: string;
+    admin: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export interface DiamondInit extends BaseContract {
@@ -75,6 +121,8 @@ export interface DiamondInit extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  diamondInitVersion: TypedContractMethod<[], [string], "view">;
+
   init: TypedContractMethod<
     [
       name: string,
@@ -94,6 +142,9 @@ export interface DiamondInit extends BaseContract {
   ): T;
 
   getFunction(
+    nameOrSignature: "diamondInitVersion"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
     nameOrSignature: "init"
   ): TypedContractMethod<
     [
@@ -109,5 +160,24 @@ export interface DiamondInit extends BaseContract {
     "nonpayable"
   >;
 
-  filters: {};
+  getEvent(
+    key: "DiamondInitialized"
+  ): TypedContractEvent<
+    DiamondInitializedEvent.InputTuple,
+    DiamondInitializedEvent.OutputTuple,
+    DiamondInitializedEvent.OutputObject
+  >;
+
+  filters: {
+    "DiamondInitialized(string,string,uint256,string,string,string,address)": TypedContractEvent<
+      DiamondInitializedEvent.InputTuple,
+      DiamondInitializedEvent.OutputTuple,
+      DiamondInitializedEvent.OutputObject
+    >;
+    DiamondInitialized: TypedContractEvent<
+      DiamondInitializedEvent.InputTuple,
+      DiamondInitializedEvent.OutputTuple,
+      DiamondInitializedEvent.OutputObject
+    >;
+  };
 }

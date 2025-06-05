@@ -65,11 +65,15 @@ export interface SecurityTokenInterface extends Interface {
       | "cap"
       | "decimals"
       | "getRoleAdmin"
+      | "getSecurityInfo"
+      | "getTokenInfo"
       | "getTransactionRecord"
       | "grantRole"
       | "hasRole"
       | "initialize"
       | "instrumentType"
+      | "isBlacklisted"
+      | "isWhitelisted"
       | "isin"
       | "jurisdiction"
       | "mint"
@@ -88,19 +92,25 @@ export interface SecurityTokenInterface extends Interface {
       | "transfer"
       | "transferFrom"
       | "unpause"
+      | "version"
       | "whitelist"
   ): FunctionFragment;
 
   getEvent(
     nameOrSignatureOrTopic:
       | "Approval"
+      | "BlacklistAdded"
+      | "BlacklistRemoved"
       | "Initialized"
       | "Paused"
       | "RoleAdminChanged"
       | "RoleGranted"
       | "RoleRevoked"
+      | "TransactionReverted"
       | "Transfer"
       | "Unpaused"
+      | "WhitelistAdded"
+      | "WhitelistRemoved"
   ): EventFragment;
 
   encodeFunctionData(
@@ -155,6 +165,14 @@ export interface SecurityTokenInterface extends Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "getSecurityInfo",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTokenInfo",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getTransactionRecord",
     values: [BigNumberish]
   ): string;
@@ -173,6 +191,14 @@ export interface SecurityTokenInterface extends Interface {
   encodeFunctionData(
     functionFragment: "instrumentType",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isBlacklisted",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isWhitelisted",
+    values: [AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "isin", values?: undefined): string;
   encodeFunctionData(
@@ -228,6 +254,7 @@ export interface SecurityTokenInterface extends Interface {
     values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "whitelist",
     values: [AddressLike]
@@ -267,6 +294,14 @@ export interface SecurityTokenInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getSecurityInfo",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTokenInfo",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getTransactionRecord",
     data: BytesLike
   ): Result;
@@ -275,6 +310,14 @@ export interface SecurityTokenInterface extends Interface {
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "instrumentType",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "isBlacklisted",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "isWhitelisted",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "isin", data: BytesLike): Result;
@@ -322,6 +365,7 @@ export interface SecurityTokenInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "whitelist", data: BytesLike): Result;
 }
 
@@ -336,6 +380,32 @@ export namespace ApprovalEvent {
     owner: string;
     spender: string;
     value: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace BlacklistAddedEvent {
+  export type InputTuple = [account: AddressLike, admin: AddressLike];
+  export type OutputTuple = [account: string, admin: string];
+  export interface OutputObject {
+    account: string;
+    admin: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace BlacklistRemovedEvent {
+  export type InputTuple = [account: AddressLike, admin: AddressLike];
+  export type OutputTuple = [account: string, admin: string];
+  export interface OutputObject {
+    account: string;
+    admin: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -425,6 +495,19 @@ export namespace RoleRevokedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace TransactionRevertedEvent {
+  export type InputTuple = [transactionId: BigNumberish, admin: AddressLike];
+  export type OutputTuple = [transactionId: bigint, admin: string];
+  export interface OutputObject {
+    transactionId: bigint;
+    admin: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export namespace TransferEvent {
   export type InputTuple = [
     from: AddressLike,
@@ -448,6 +531,32 @@ export namespace UnpausedEvent {
   export type OutputTuple = [account: string];
   export interface OutputObject {
     account: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace WhitelistAddedEvent {
+  export type InputTuple = [account: AddressLike, admin: AddressLike];
+  export type OutputTuple = [account: string, admin: string];
+  export interface OutputObject {
+    account: string;
+    admin: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace WhitelistRemovedEvent {
+  export type InputTuple = [account: AddressLike, admin: AddressLike];
+  export type OutputTuple = [account: string, admin: string];
+  export interface OutputObject {
+    account: string;
+    admin: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -548,6 +657,32 @@ export interface SecurityToken extends BaseContract {
 
   getRoleAdmin: TypedContractMethod<[role: BytesLike], [string], "view">;
 
+  getSecurityInfo: TypedContractMethod<
+    [],
+    [
+      [string, string, string] & {
+        isin_: string;
+        instrumentType_: string;
+        jurisdiction_: string;
+      }
+    ],
+    "view"
+  >;
+
+  getTokenInfo: TypedContractMethod<
+    [],
+    [
+      [string, string, bigint, bigint, bigint] & {
+        name_: string;
+        symbol_: string;
+        decimals_: bigint;
+        totalSupply_: bigint;
+        cap_: bigint;
+      }
+    ],
+    "view"
+  >;
+
   getTransactionRecord: TypedContractMethod<
     [id: BigNumberish],
     [SecurityToken.TransactionRecordStructOutput],
@@ -581,6 +716,10 @@ export interface SecurityToken extends BaseContract {
   >;
 
   instrumentType: TypedContractMethod<[], [string], "view">;
+
+  isBlacklisted: TypedContractMethod<[account: AddressLike], [boolean], "view">;
+
+  isWhitelisted: TypedContractMethod<[account: AddressLike], [boolean], "view">;
 
   isin: TypedContractMethod<[], [string], "view">;
 
@@ -654,6 +793,8 @@ export interface SecurityToken extends BaseContract {
 
   unpause: TypedContractMethod<[], [void], "nonpayable">;
 
+  version: TypedContractMethod<[], [string], "view">;
+
   whitelist: TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
 
   getFunction<T extends ContractMethod = ContractMethod>(
@@ -718,6 +859,34 @@ export interface SecurityToken extends BaseContract {
     nameOrSignature: "getRoleAdmin"
   ): TypedContractMethod<[role: BytesLike], [string], "view">;
   getFunction(
+    nameOrSignature: "getSecurityInfo"
+  ): TypedContractMethod<
+    [],
+    [
+      [string, string, string] & {
+        isin_: string;
+        instrumentType_: string;
+        jurisdiction_: string;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getTokenInfo"
+  ): TypedContractMethod<
+    [],
+    [
+      [string, string, bigint, bigint, bigint] & {
+        name_: string;
+        symbol_: string;
+        decimals_: bigint;
+        totalSupply_: bigint;
+        cap_: bigint;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
     nameOrSignature: "getTransactionRecord"
   ): TypedContractMethod<
     [id: BigNumberish],
@@ -756,6 +925,12 @@ export interface SecurityToken extends BaseContract {
   getFunction(
     nameOrSignature: "instrumentType"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "isBlacklisted"
+  ): TypedContractMethod<[account: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "isWhitelisted"
+  ): TypedContractMethod<[account: AddressLike], [boolean], "view">;
   getFunction(
     nameOrSignature: "isin"
   ): TypedContractMethod<[], [string], "view">;
@@ -831,6 +1006,9 @@ export interface SecurityToken extends BaseContract {
     nameOrSignature: "unpause"
   ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
     nameOrSignature: "whitelist"
   ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
 
@@ -840,6 +1018,20 @@ export interface SecurityToken extends BaseContract {
     ApprovalEvent.InputTuple,
     ApprovalEvent.OutputTuple,
     ApprovalEvent.OutputObject
+  >;
+  getEvent(
+    key: "BlacklistAdded"
+  ): TypedContractEvent<
+    BlacklistAddedEvent.InputTuple,
+    BlacklistAddedEvent.OutputTuple,
+    BlacklistAddedEvent.OutputObject
+  >;
+  getEvent(
+    key: "BlacklistRemoved"
+  ): TypedContractEvent<
+    BlacklistRemovedEvent.InputTuple,
+    BlacklistRemovedEvent.OutputTuple,
+    BlacklistRemovedEvent.OutputObject
   >;
   getEvent(
     key: "Initialized"
@@ -877,6 +1069,13 @@ export interface SecurityToken extends BaseContract {
     RoleRevokedEvent.OutputObject
   >;
   getEvent(
+    key: "TransactionReverted"
+  ): TypedContractEvent<
+    TransactionRevertedEvent.InputTuple,
+    TransactionRevertedEvent.OutputTuple,
+    TransactionRevertedEvent.OutputObject
+  >;
+  getEvent(
     key: "Transfer"
   ): TypedContractEvent<
     TransferEvent.InputTuple,
@@ -890,6 +1089,20 @@ export interface SecurityToken extends BaseContract {
     UnpausedEvent.OutputTuple,
     UnpausedEvent.OutputObject
   >;
+  getEvent(
+    key: "WhitelistAdded"
+  ): TypedContractEvent<
+    WhitelistAddedEvent.InputTuple,
+    WhitelistAddedEvent.OutputTuple,
+    WhitelistAddedEvent.OutputObject
+  >;
+  getEvent(
+    key: "WhitelistRemoved"
+  ): TypedContractEvent<
+    WhitelistRemovedEvent.InputTuple,
+    WhitelistRemovedEvent.OutputTuple,
+    WhitelistRemovedEvent.OutputObject
+  >;
 
   filters: {
     "Approval(address,address,uint256)": TypedContractEvent<
@@ -901,6 +1114,28 @@ export interface SecurityToken extends BaseContract {
       ApprovalEvent.InputTuple,
       ApprovalEvent.OutputTuple,
       ApprovalEvent.OutputObject
+    >;
+
+    "BlacklistAdded(address,address)": TypedContractEvent<
+      BlacklistAddedEvent.InputTuple,
+      BlacklistAddedEvent.OutputTuple,
+      BlacklistAddedEvent.OutputObject
+    >;
+    BlacklistAdded: TypedContractEvent<
+      BlacklistAddedEvent.InputTuple,
+      BlacklistAddedEvent.OutputTuple,
+      BlacklistAddedEvent.OutputObject
+    >;
+
+    "BlacklistRemoved(address,address)": TypedContractEvent<
+      BlacklistRemovedEvent.InputTuple,
+      BlacklistRemovedEvent.OutputTuple,
+      BlacklistRemovedEvent.OutputObject
+    >;
+    BlacklistRemoved: TypedContractEvent<
+      BlacklistRemovedEvent.InputTuple,
+      BlacklistRemovedEvent.OutputTuple,
+      BlacklistRemovedEvent.OutputObject
     >;
 
     "Initialized(uint64)": TypedContractEvent<
@@ -958,6 +1193,17 @@ export interface SecurityToken extends BaseContract {
       RoleRevokedEvent.OutputObject
     >;
 
+    "TransactionReverted(uint256,address)": TypedContractEvent<
+      TransactionRevertedEvent.InputTuple,
+      TransactionRevertedEvent.OutputTuple,
+      TransactionRevertedEvent.OutputObject
+    >;
+    TransactionReverted: TypedContractEvent<
+      TransactionRevertedEvent.InputTuple,
+      TransactionRevertedEvent.OutputTuple,
+      TransactionRevertedEvent.OutputObject
+    >;
+
     "Transfer(address,address,uint256)": TypedContractEvent<
       TransferEvent.InputTuple,
       TransferEvent.OutputTuple,
@@ -978,6 +1224,28 @@ export interface SecurityToken extends BaseContract {
       UnpausedEvent.InputTuple,
       UnpausedEvent.OutputTuple,
       UnpausedEvent.OutputObject
+    >;
+
+    "WhitelistAdded(address,address)": TypedContractEvent<
+      WhitelistAddedEvent.InputTuple,
+      WhitelistAddedEvent.OutputTuple,
+      WhitelistAddedEvent.OutputObject
+    >;
+    WhitelistAdded: TypedContractEvent<
+      WhitelistAddedEvent.InputTuple,
+      WhitelistAddedEvent.OutputTuple,
+      WhitelistAddedEvent.OutputObject
+    >;
+
+    "WhitelistRemoved(address,address)": TypedContractEvent<
+      WhitelistRemovedEvent.InputTuple,
+      WhitelistRemovedEvent.OutputTuple,
+      WhitelistRemovedEvent.OutputObject
+    >;
+    WhitelistRemoved: TypedContractEvent<
+      WhitelistRemovedEvent.InputTuple,
+      WhitelistRemovedEvent.OutputTuple,
+      WhitelistRemovedEvent.OutputObject
     >;
   };
 }

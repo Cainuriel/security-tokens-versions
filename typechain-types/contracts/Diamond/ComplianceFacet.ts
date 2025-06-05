@@ -53,7 +53,11 @@ export interface ComplianceFacetInterface extends Interface {
       | "MINTER_ROLE"
       | "PAUSER_ROLE"
       | "cap"
+      | "complianceFacetVersion"
+      | "getComplianceInfo"
       | "getTransactionRecord"
+      | "getTransactionRecords"
+      | "getTransactionRecordsForAccount"
       | "instrumentType"
       | "isin"
       | "jurisdiction"
@@ -79,8 +83,24 @@ export interface ComplianceFacetInterface extends Interface {
   ): string;
   encodeFunctionData(functionFragment: "cap", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "complianceFacetVersion",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getComplianceInfo",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getTransactionRecord",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTransactionRecords",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTransactionRecordsForAccount",
+    values: [AddressLike, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "instrumentType",
@@ -115,7 +135,23 @@ export interface ComplianceFacetInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "cap", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "complianceFacetVersion",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getComplianceInfo",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getTransactionRecord",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTransactionRecords",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTransactionRecordsForAccount",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -190,9 +226,42 @@ export interface ComplianceFacet extends BaseContract {
 
   cap: TypedContractMethod<[], [bigint], "view">;
 
+  complianceFacetVersion: TypedContractMethod<[], [string], "view">;
+
+  getComplianceInfo: TypedContractMethod<
+    [],
+    [
+      [string, string, string, bigint, bigint] & {
+        isinCode: string;
+        tokenType: string;
+        tokenJurisdiction: string;
+        maxSupply: bigint;
+        totalTransactions: bigint;
+      }
+    ],
+    "view"
+  >;
+
   getTransactionRecord: TypedContractMethod<
     [id: BigNumberish],
     [LibSecurityToken.TransactionRecordStructOutput],
+    "view"
+  >;
+
+  getTransactionRecords: TypedContractMethod<
+    [offset: BigNumberish, limit: BigNumberish],
+    [
+      [LibSecurityToken.TransactionRecordStructOutput[], bigint] & {
+        records: LibSecurityToken.TransactionRecordStructOutput[];
+        total: bigint;
+      }
+    ],
+    "view"
+  >;
+
+  getTransactionRecordsForAccount: TypedContractMethod<
+    [account: AddressLike, asFrom: boolean],
+    [LibSecurityToken.TransactionRecordStructOutput[]],
     "view"
   >;
 
@@ -230,10 +299,47 @@ export interface ComplianceFacet extends BaseContract {
     nameOrSignature: "cap"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "complianceFacetVersion"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getComplianceInfo"
+  ): TypedContractMethod<
+    [],
+    [
+      [string, string, string, bigint, bigint] & {
+        isinCode: string;
+        tokenType: string;
+        tokenJurisdiction: string;
+        maxSupply: bigint;
+        totalTransactions: bigint;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
     nameOrSignature: "getTransactionRecord"
   ): TypedContractMethod<
     [id: BigNumberish],
     [LibSecurityToken.TransactionRecordStructOutput],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getTransactionRecords"
+  ): TypedContractMethod<
+    [offset: BigNumberish, limit: BigNumberish],
+    [
+      [LibSecurityToken.TransactionRecordStructOutput[], bigint] & {
+        records: LibSecurityToken.TransactionRecordStructOutput[];
+        total: bigint;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getTransactionRecordsForAccount"
+  ): TypedContractMethod<
+    [account: AddressLike, asFrom: boolean],
+    [LibSecurityToken.TransactionRecordStructOutput[]],
     "view"
   >;
   getFunction(

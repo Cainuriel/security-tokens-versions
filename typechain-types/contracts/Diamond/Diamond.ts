@@ -37,7 +37,10 @@ export declare namespace IDiamondCut {
 
 export interface DiamondInterface extends Interface {
   getEvent(
-    nameOrSignatureOrTopic: "DiamondCut" | "OwnershipTransferred"
+    nameOrSignatureOrTopic:
+      | "DiamondCut"
+      | "DiamondDeployed"
+      | "OwnershipTransferred"
   ): EventFragment;
 }
 
@@ -56,6 +59,19 @@ export namespace DiamondCutEvent {
     _diamondCut: IDiamondCut.FacetCutStructOutput[];
     _init: string;
     _calldata: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace DiamondDeployedEvent {
+  export type InputTuple = [owner: AddressLike, facetCount: BigNumberish];
+  export type OutputTuple = [owner: string, facetCount: bigint];
+  export interface OutputObject {
+    owner: string;
+    facetCount: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -131,6 +147,13 @@ export interface Diamond extends BaseContract {
     DiamondCutEvent.OutputObject
   >;
   getEvent(
+    key: "DiamondDeployed"
+  ): TypedContractEvent<
+    DiamondDeployedEvent.InputTuple,
+    DiamondDeployedEvent.OutputTuple,
+    DiamondDeployedEvent.OutputObject
+  >;
+  getEvent(
     key: "OwnershipTransferred"
   ): TypedContractEvent<
     OwnershipTransferredEvent.InputTuple,
@@ -148,6 +171,17 @@ export interface Diamond extends BaseContract {
       DiamondCutEvent.InputTuple,
       DiamondCutEvent.OutputTuple,
       DiamondCutEvent.OutputObject
+    >;
+
+    "DiamondDeployed(address,uint256)": TypedContractEvent<
+      DiamondDeployedEvent.InputTuple,
+      DiamondDeployedEvent.OutputTuple,
+      DiamondDeployedEvent.OutputObject
+    >;
+    DiamondDeployed: TypedContractEvent<
+      DiamondDeployedEvent.InputTuple,
+      DiamondDeployedEvent.OutputTuple,
+      DiamondDeployedEvent.OutputObject
     >;
 
     "OwnershipTransferred(address,address)": TypedContractEvent<

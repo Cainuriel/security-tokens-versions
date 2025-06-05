@@ -41,9 +41,7 @@ describe("SecurityToken (Diamond architecture)", function () {
  * (the list of functions each facet adds to the Diamond).
  */
 function getSelectors(contract) {
-
   const functionFragments = contract.interface.fragments.filter(f => f.type === "function");
-//   console.log('functionFragments:', functionFragments.map(f => f.name));
   const selectors = functionFragments
     .filter(f => f.name !== "init")
     .map(f => contract.interface.getFunction(f.name).selector);
@@ -78,11 +76,9 @@ function getSelectors(contract) {
     // Deploy DiamondCutFacet and DiamondLoupeFacet (needed for Diamond)
     DiamondCutFacet = await ethers.getContractFactory("DiamondCutFacet");
     diamondCutFacet = await DiamondCutFacet.deploy();
-    await diamondCutFacet.waitForDeployment();
-
-    DiamondLoupeFacet = await ethers.getContractFactory("DiamondLoupeFacet");
+    await diamondCutFacet.waitForDeployment();    DiamondLoupeFacet = await ethers.getContractFactory("DiamondLoupeFacet");
     diamondLoupeFacet = await DiamondLoupeFacet.deploy();
-    await diamondLoupeFacet.waitForDeployment()
+    await diamondLoupeFacet.waitForDeployment();
 
     const cut = [
             {
@@ -192,12 +188,10 @@ function getSelectors(contract) {
 
       // Mint some tokens first (admin should be whitelisted for minting)
       await adminFacetContract.addToWhitelist(admin.address);
-      await minting.mint(admin.address, ethers.parseUnits("1000", 18));
-
-      // Try to transfer without whitelisting recipient
+      await minting.mint(admin.address, ethers.parseUnits("1000", 18));      // Try to transfer without whitelisting recipient
       await expect(
         erc20.transfer(user1.address, ethers.parseUnits("100", 18))
-      ).to.be.revertedWith("Recipient is not whitelisted");
+      ).to.be.revertedWithCustomError(erc20, "RecipientNotWhitelisted");
     });
 
     it("should allow transfers when both parties are whitelisted", async function () {
@@ -235,12 +229,10 @@ function getSelectors(contract) {
       const minting = await ethers.getContractAt("MintingFacet", diamondAddress);
       const adminFacetContract = await ethers.getContractAt("AdminFacet", diamondAddress);
 
-      await adminFacetContract.addToWhitelist(user2.address);
-
-      // Try to mint more than remaining cap
+      await adminFacetContract.addToWhitelist(user2.address);      // Try to mint more than remaining cap
       await expect(
         minting.mint(user2.address, ethers.parseUnits("999000", 18)) // Close to cap limit
-      ).to.be.revertedWith("ERC20Capped: cap exceeded");
+      ).to.be.revertedWithCustomError(minting, "CapExceeded");
     });
 
     it("should allow burning tokens", async function () {
@@ -264,12 +256,10 @@ function getSelectors(contract) {
 
       // Pause the contract
       await adminFacetContract.pause();
-      expect(await adminFacetContract.paused()).to.be.true;
-
-      // Transfers should be blocked when paused
+      expect(await adminFacetContract.paused()).to.be.true;      // Transfers should be blocked when paused
       await expect(
         erc20.connect(user1).transfer(user2.address, ethers.parseUnits("10", 18))
-      ).to.be.revertedWith("ERC20Pausable: token transfer while paused");
+      ).to.be.revertedWithCustomError(erc20, "ERC20TokenTransferPaused");
 
       // Unpause
       await adminFacetContract.unpause();
@@ -306,11 +296,9 @@ function getSelectors(contract) {
 
       // Whitelist user1 first, then blacklist
       await adminFacetContract.addToWhitelist(user1.address);
-      await adminFacetContract.addToBlacklist(user1.address);
-
-      await expect(
+      await adminFacetContract.addToBlacklist(user1.address);      await expect(
         erc20.connect(user1).transfer(admin.address, ethers.parseUnits("10", 18))
-      ).to.be.revertedWith("Sender is blacklisted");
+      ).to.be.revertedWithCustomError(erc20, "SenderBlacklisted");
     });
   });
 
@@ -364,15 +352,12 @@ function getSelectors(contract) {
       // Should have created a new transaction record for the reversal
       const newTxCount = await compliance.transactionCount();
       expect(newTxCount).to.equal(txCount + 1n);
-    });
-
-    it("should not allow non-admin to revert transactions", async function () {
+    });    it("should not allow non-admin to revert transactions", async function () {
       const compliance = await ethers.getContractAt("ComplianceFacet", diamondAddress);
       const txCount = await compliance.transactionCount();
-
       await expect(
         compliance.connect(user1).revertTransaction(txCount)
-      ).to.be.revertedWith("AccessControl: account is missing role");
+      ).to.be.revertedWithCustomError(compliance, "UnauthorizedRole");
     });
   });
 
@@ -396,11 +381,9 @@ function getSelectors(contract) {
       const adminFacetContract = await ethers.getContractAt("AdminFacet", diamondAddress);
       const compliance = await ethers.getContractAt("ComplianceFacet", diamondAddress);
 
-      const minterRole = await compliance.MINTER_ROLE();
-
-      await expect(
+      const minterRole = await compliance.MINTER_ROLE();      await expect(
         adminFacetContract.connect(user1).grantRole(minterRole, user2.address)
-      ).to.be.revertedWith("AccessControl: sender must be an admin");
+      ).to.be.revertedWithCustomError(adminFacetContract, "AccessControlSenderMustBeAdmin");
     });
   });
 

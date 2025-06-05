@@ -23,24 +23,69 @@ import type {
 } from "../../common";
 
 export interface OwnershipFacetInterface extends Interface {
-  getFunction(nameOrSignature: "owner" | "transferOwnership"): FunctionFragment;
+  getFunction(
+    nameOrSignature:
+      | "isOwner"
+      | "owner"
+      | "ownershipFacetVersion"
+      | "renounceOwnership"
+      | "transferOwnership"
+  ): FunctionFragment;
 
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic:
+      | "OwnershipTransferred(address,address)"
+      | "OwnershipTransferred(address,address)"
+  ): EventFragment;
 
+  encodeFunctionData(
+    functionFragment: "isOwner",
+    values: [AddressLike]
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "ownershipFacetVersion",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "renounceOwnership",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [AddressLike]
   ): string;
 
+  decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "ownershipFacetVersion",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
 }
 
-export namespace OwnershipTransferredEvent {
+export namespace OwnershipTransferred_address_address_Event {
+  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
+  export type OutputTuple = [previousOwner: string, newOwner: string];
+  export interface OutputObject {
+    previousOwner: string;
+    newOwner: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace OwnershipTransferred_address_address_Event {
   export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
   export type OutputTuple = [previousOwner: string, newOwner: string];
   export interface OutputObject {
@@ -96,7 +141,13 @@ export interface OwnershipFacet extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  isOwner: TypedContractMethod<[account: AddressLike], [boolean], "view">;
+
   owner: TypedContractMethod<[], [string], "view">;
+
+  ownershipFacetVersion: TypedContractMethod<[], [string], "view">;
+
+  renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
 
   transferOwnership: TypedContractMethod<
     [_newOwner: AddressLike],
@@ -109,30 +160,46 @@ export interface OwnershipFacet extends BaseContract {
   ): T;
 
   getFunction(
+    nameOrSignature: "isOwner"
+  ): TypedContractMethod<[account: AddressLike], [boolean], "view">;
+  getFunction(
     nameOrSignature: "owner"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "ownershipFacetVersion"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "renounceOwnership"
+  ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "transferOwnership"
   ): TypedContractMethod<[_newOwner: AddressLike], [void], "nonpayable">;
 
   getEvent(
-    key: "OwnershipTransferred"
+    key: "OwnershipTransferred(address,address)"
   ): TypedContractEvent<
-    OwnershipTransferredEvent.InputTuple,
-    OwnershipTransferredEvent.OutputTuple,
-    OwnershipTransferredEvent.OutputObject
+    OwnershipTransferred_address_address_Event.InputTuple,
+    OwnershipTransferred_address_address_Event.OutputTuple,
+    OwnershipTransferred_address_address_Event.OutputObject
+  >;
+  getEvent(
+    key: "OwnershipTransferred(address,address)"
+  ): TypedContractEvent<
+    OwnershipTransferred_address_address_Event.InputTuple,
+    OwnershipTransferred_address_address_Event.OutputTuple,
+    OwnershipTransferred_address_address_Event.OutputObject
   >;
 
   filters: {
     "OwnershipTransferred(address,address)": TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
+      OwnershipTransferred_address_address_Event.InputTuple,
+      OwnershipTransferred_address_address_Event.OutputTuple,
+      OwnershipTransferred_address_address_Event.OutputObject
     >;
-    OwnershipTransferred: TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
+    "OwnershipTransferred(address,address)": TypedContractEvent<
+      OwnershipTransferred_address_address_Event.InputTuple,
+      OwnershipTransferred_address_address_Event.OutputTuple,
+      OwnershipTransferred_address_address_Event.OutputObject
     >;
   };
 }

@@ -38,7 +38,13 @@ export declare namespace IDiamondCut {
 }
 
 export interface DiamondCutFacetInterface extends Interface {
-  getFunction(nameOrSignature: "diamondCut"): FunctionFragment;
+  getFunction(
+    nameOrSignature:
+      | "diamondCut"
+      | "diamondCutFacetVersion"
+      | "isOwner"
+      | "owner"
+  ): FunctionFragment;
 
   getEvent(
     nameOrSignatureOrTopic:
@@ -50,8 +56,23 @@ export interface DiamondCutFacetInterface extends Interface {
     functionFragment: "diamondCut",
     values: [IDiamondCut.FacetCutStruct[], AddressLike, BytesLike]
   ): string;
+  encodeFunctionData(
+    functionFragment: "diamondCutFacetVersion",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isOwner",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "diamondCut", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "diamondCutFacetVersion",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
 }
 
 export namespace DiamondCut_tuple_array_address_bytes_Event {
@@ -151,6 +172,12 @@ export interface DiamondCutFacet extends BaseContract {
     "nonpayable"
   >;
 
+  diamondCutFacetVersion: TypedContractMethod<[], [string], "view">;
+
+  isOwner: TypedContractMethod<[account: AddressLike], [boolean], "view">;
+
+  owner: TypedContractMethod<[], [string], "view">;
+
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
@@ -166,6 +193,15 @@ export interface DiamondCutFacet extends BaseContract {
     [void],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "diamondCutFacetVersion"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "isOwner"
+  ): TypedContractMethod<[account: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "owner"
+  ): TypedContractMethod<[], [string], "view">;
 
   getEvent(
     key: "DiamondCut(tuple[],address,bytes)"

@@ -35,13 +35,23 @@ export declare namespace IDiamondLoupe {
 export interface DiamondLoupeFacetInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "diamondLoupeFacetVersion"
       | "facetAddress"
       | "facetAddresses"
+      | "facetCount"
+      | "facetExists"
       | "facetFunctionSelectors"
       | "facets"
+      | "functionExists"
+      | "getDiamondInfo"
       | "supportsInterface"
+      | "totalFunctionSelectors"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "diamondLoupeFacetVersion",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "facetAddress",
     values: [BytesLike]
@@ -51,15 +61,39 @@ export interface DiamondLoupeFacetInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "facetCount",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "facetExists",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "facetFunctionSelectors",
     values: [AddressLike]
   ): string;
   encodeFunctionData(functionFragment: "facets", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "functionExists",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getDiamondInfo",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [BytesLike]
   ): string;
+  encodeFunctionData(
+    functionFragment: "totalFunctionSelectors",
+    values?: undefined
+  ): string;
 
+  decodeFunctionResult(
+    functionFragment: "diamondLoupeFacetVersion",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "facetAddress",
     data: BytesLike
@@ -68,13 +102,30 @@ export interface DiamondLoupeFacetInterface extends Interface {
     functionFragment: "facetAddresses",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "facetCount", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "facetExists",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "facetFunctionSelectors",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "facets", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "functionExists",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getDiamondInfo",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "supportsInterface",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "totalFunctionSelectors",
     data: BytesLike
   ): Result;
 }
@@ -122,6 +173,8 @@ export interface DiamondLoupeFacet extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  diamondLoupeFacetVersion: TypedContractMethod<[], [string], "view">;
+
   facetAddress: TypedContractMethod<
     [_functionSelector: BytesLike],
     [string],
@@ -129,6 +182,10 @@ export interface DiamondLoupeFacet extends BaseContract {
   >;
 
   facetAddresses: TypedContractMethod<[], [string[]], "view">;
+
+  facetCount: TypedContractMethod<[], [bigint], "view">;
+
+  facetExists: TypedContractMethod<[_facet: AddressLike], [boolean], "view">;
 
   facetFunctionSelectors: TypedContractMethod<
     [_facet: AddressLike],
@@ -138,16 +195,39 @@ export interface DiamondLoupeFacet extends BaseContract {
 
   facets: TypedContractMethod<[], [IDiamondLoupe.FacetStructOutput[]], "view">;
 
+  functionExists: TypedContractMethod<
+    [_functionSelector: BytesLike],
+    [boolean],
+    "view"
+  >;
+
+  getDiamondInfo: TypedContractMethod<
+    [],
+    [
+      [bigint, bigint, string[]] & {
+        facetCount_: bigint;
+        functionCount: bigint;
+        facetAddresses_: string[];
+      }
+    ],
+    "view"
+  >;
+
   supportsInterface: TypedContractMethod<
     [_interfaceId: BytesLike],
     [boolean],
     "view"
   >;
 
+  totalFunctionSelectors: TypedContractMethod<[], [bigint], "view">;
+
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
 
+  getFunction(
+    nameOrSignature: "diamondLoupeFacetVersion"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "facetAddress"
   ): TypedContractMethod<[_functionSelector: BytesLike], [string], "view">;
@@ -155,14 +235,39 @@ export interface DiamondLoupeFacet extends BaseContract {
     nameOrSignature: "facetAddresses"
   ): TypedContractMethod<[], [string[]], "view">;
   getFunction(
+    nameOrSignature: "facetCount"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "facetExists"
+  ): TypedContractMethod<[_facet: AddressLike], [boolean], "view">;
+  getFunction(
     nameOrSignature: "facetFunctionSelectors"
   ): TypedContractMethod<[_facet: AddressLike], [string[]], "view">;
   getFunction(
     nameOrSignature: "facets"
   ): TypedContractMethod<[], [IDiamondLoupe.FacetStructOutput[]], "view">;
   getFunction(
+    nameOrSignature: "functionExists"
+  ): TypedContractMethod<[_functionSelector: BytesLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "getDiamondInfo"
+  ): TypedContractMethod<
+    [],
+    [
+      [bigint, bigint, string[]] & {
+        facetCount_: bigint;
+        functionCount: bigint;
+        facetAddresses_: string[];
+      }
+    ],
+    "view"
+  >;
+  getFunction(
     nameOrSignature: "supportsInterface"
   ): TypedContractMethod<[_interfaceId: BytesLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "totalFunctionSelectors"
+  ): TypedContractMethod<[], [bigint], "view">;
 
   filters: {};
 }

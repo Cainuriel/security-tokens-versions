@@ -27,6 +27,8 @@ export interface AdminFacetInterface extends Interface {
     nameOrSignature:
       | "addToBlacklist"
       | "addToWhitelist"
+      | "batchIsBlacklisted"
+      | "batchIsWhitelisted"
       | "getRoleAdmin"
       | "grantRole"
       | "hasRole"
@@ -42,10 +44,14 @@ export interface AdminFacetInterface extends Interface {
 
   getEvent(
     nameOrSignatureOrTopic:
+      | "BlacklistAdded"
+      | "BlacklistRemoved"
       | "Paused"
       | "RoleGranted"
       | "RoleRevoked"
       | "Unpaused"
+      | "WhitelistAdded"
+      | "WhitelistRemoved"
   ): EventFragment;
 
   encodeFunctionData(
@@ -55,6 +61,14 @@ export interface AdminFacetInterface extends Interface {
   encodeFunctionData(
     functionFragment: "addToWhitelist",
     values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "batchIsBlacklisted",
+    values: [AddressLike[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "batchIsWhitelisted",
+    values: [AddressLike[]]
   ): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
@@ -101,6 +115,14 @@ export interface AdminFacetInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "batchIsBlacklisted",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "batchIsWhitelisted",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getRoleAdmin",
     data: BytesLike
   ): Result;
@@ -126,6 +148,32 @@ export interface AdminFacetInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
+}
+
+export namespace BlacklistAddedEvent {
+  export type InputTuple = [account: AddressLike, admin: AddressLike];
+  export type OutputTuple = [account: string, admin: string];
+  export interface OutputObject {
+    account: string;
+    admin: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace BlacklistRemovedEvent {
+  export type InputTuple = [account: AddressLike, admin: AddressLike];
+  export type OutputTuple = [account: string, admin: string];
+  export interface OutputObject {
+    account: string;
+    admin: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export namespace PausedEvent {
@@ -188,6 +236,32 @@ export namespace UnpausedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace WhitelistAddedEvent {
+  export type InputTuple = [account: AddressLike, admin: AddressLike];
+  export type OutputTuple = [account: string, admin: string];
+  export interface OutputObject {
+    account: string;
+    admin: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace WhitelistRemovedEvent {
+  export type InputTuple = [account: AddressLike, admin: AddressLike];
+  export type OutputTuple = [account: string, admin: string];
+  export interface OutputObject {
+    account: string;
+    admin: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export interface AdminFacet extends BaseContract {
   connect(runner?: ContractRunner | null): AdminFacet;
   waitForDeployment(): Promise<this>;
@@ -243,6 +317,18 @@ export interface AdminFacet extends BaseContract {
     "nonpayable"
   >;
 
+  batchIsBlacklisted: TypedContractMethod<
+    [accounts: AddressLike[]],
+    [boolean[]],
+    "view"
+  >;
+
+  batchIsWhitelisted: TypedContractMethod<
+    [accounts: AddressLike[]],
+    [boolean[]],
+    "view"
+  >;
+
   getRoleAdmin: TypedContractMethod<[role: BytesLike], [string], "view">;
 
   grantRole: TypedContractMethod<
@@ -296,6 +382,12 @@ export interface AdminFacet extends BaseContract {
     nameOrSignature: "addToWhitelist"
   ): TypedContractMethod<[account: AddressLike], [void], "nonpayable">;
   getFunction(
+    nameOrSignature: "batchIsBlacklisted"
+  ): TypedContractMethod<[accounts: AddressLike[]], [boolean[]], "view">;
+  getFunction(
+    nameOrSignature: "batchIsWhitelisted"
+  ): TypedContractMethod<[accounts: AddressLike[]], [boolean[]], "view">;
+  getFunction(
     nameOrSignature: "getRoleAdmin"
   ): TypedContractMethod<[role: BytesLike], [string], "view">;
   getFunction(
@@ -342,6 +434,20 @@ export interface AdminFacet extends BaseContract {
   ): TypedContractMethod<[], [void], "nonpayable">;
 
   getEvent(
+    key: "BlacklistAdded"
+  ): TypedContractEvent<
+    BlacklistAddedEvent.InputTuple,
+    BlacklistAddedEvent.OutputTuple,
+    BlacklistAddedEvent.OutputObject
+  >;
+  getEvent(
+    key: "BlacklistRemoved"
+  ): TypedContractEvent<
+    BlacklistRemovedEvent.InputTuple,
+    BlacklistRemovedEvent.OutputTuple,
+    BlacklistRemovedEvent.OutputObject
+  >;
+  getEvent(
     key: "Paused"
   ): TypedContractEvent<
     PausedEvent.InputTuple,
@@ -369,8 +475,44 @@ export interface AdminFacet extends BaseContract {
     UnpausedEvent.OutputTuple,
     UnpausedEvent.OutputObject
   >;
+  getEvent(
+    key: "WhitelistAdded"
+  ): TypedContractEvent<
+    WhitelistAddedEvent.InputTuple,
+    WhitelistAddedEvent.OutputTuple,
+    WhitelistAddedEvent.OutputObject
+  >;
+  getEvent(
+    key: "WhitelistRemoved"
+  ): TypedContractEvent<
+    WhitelistRemovedEvent.InputTuple,
+    WhitelistRemovedEvent.OutputTuple,
+    WhitelistRemovedEvent.OutputObject
+  >;
 
   filters: {
+    "BlacklistAdded(address,address)": TypedContractEvent<
+      BlacklistAddedEvent.InputTuple,
+      BlacklistAddedEvent.OutputTuple,
+      BlacklistAddedEvent.OutputObject
+    >;
+    BlacklistAdded: TypedContractEvent<
+      BlacklistAddedEvent.InputTuple,
+      BlacklistAddedEvent.OutputTuple,
+      BlacklistAddedEvent.OutputObject
+    >;
+
+    "BlacklistRemoved(address,address)": TypedContractEvent<
+      BlacklistRemovedEvent.InputTuple,
+      BlacklistRemovedEvent.OutputTuple,
+      BlacklistRemovedEvent.OutputObject
+    >;
+    BlacklistRemoved: TypedContractEvent<
+      BlacklistRemovedEvent.InputTuple,
+      BlacklistRemovedEvent.OutputTuple,
+      BlacklistRemovedEvent.OutputObject
+    >;
+
     "Paused(address)": TypedContractEvent<
       PausedEvent.InputTuple,
       PausedEvent.OutputTuple,
@@ -413,6 +555,28 @@ export interface AdminFacet extends BaseContract {
       UnpausedEvent.InputTuple,
       UnpausedEvent.OutputTuple,
       UnpausedEvent.OutputObject
+    >;
+
+    "WhitelistAdded(address,address)": TypedContractEvent<
+      WhitelistAddedEvent.InputTuple,
+      WhitelistAddedEvent.OutputTuple,
+      WhitelistAddedEvent.OutputObject
+    >;
+    WhitelistAdded: TypedContractEvent<
+      WhitelistAddedEvent.InputTuple,
+      WhitelistAddedEvent.OutputTuple,
+      WhitelistAddedEvent.OutputObject
+    >;
+
+    "WhitelistRemoved(address,address)": TypedContractEvent<
+      WhitelistRemovedEvent.InputTuple,
+      WhitelistRemovedEvent.OutputTuple,
+      WhitelistRemovedEvent.OutputObject
+    >;
+    WhitelistRemoved: TypedContractEvent<
+      WhitelistRemovedEvent.InputTuple,
+      WhitelistRemovedEvent.OutputTuple,
+      WhitelistRemovedEvent.OutputObject
     >;
   };
 }
