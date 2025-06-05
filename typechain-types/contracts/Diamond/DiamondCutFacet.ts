@@ -87,25 +87,12 @@ export namespace DiamondCut_tuple_array_address_bytes_Event {
 }
 
 export namespace DiamondCut_tuple_array_address_bytes_Event {
-  export type InputTuple = [
-    _diamondCut: IDiamondCut.FacetCutStruct[],
-    _init: AddressLike,
-    _calldata: BytesLike
-  ];
-  export type OutputTuple = [
-    _diamondCut: IDiamondCut.FacetCutStructOutput[],
-    _init: string,
-    _calldata: string
-  ];
+  
   export interface OutputObject {
     _diamondCut: IDiamondCut.FacetCutStructOutput[];
     _init: string;
     _calldata: string;
   }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export interface DiamondCutFacet extends BaseContract {
@@ -203,10 +190,6 @@ export interface DiamondCutFacet extends BaseContract {
       DiamondCut_tuple_array_address_bytes_Event.OutputTuple,
       DiamondCut_tuple_array_address_bytes_Event.OutputObject
     >;
-    "DiamondCut(tuple[],address,bytes)": TypedContractEvent<
-      DiamondCut_tuple_array_address_bytes_Event.InputTuple,
-      DiamondCut_tuple_array_address_bytes_Event.OutputTuple,
-      DiamondCut_tuple_array_address_bytes_Event.OutputObject
-    >;
+  
   };
 }

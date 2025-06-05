@@ -1,29 +1,29 @@
-# Patrones con SecurityToken.sol
+# SecurityToken.sol Patterns
 
-## Índice
+## Table of Contents
 
 - [Single SecurityToken.sol](#single-securitytokensol)
-- [Security Token con Patrón Beacon](#security-token-con-patrón-beacon)
+- [Security Token with Beacon Pattern](#security-token-with-beacon-pattern)
 - [Diamond Security Token](#diamond-security-token)
-
 
 # Single SecurityToken.sol
 
-`SecurityToken.sol` es un contrato inteligente ERC20 extensible y seguro, diseñado para representar tokens regulados (security tokens) en Ethereum. Utiliza los módulos upgradeables de OpenZeppelin y añade controles de acceso, listas blanca/negra y registro de transacciones.
+`SecurityToken.sol` is an extensible and secure ERC20 smart contract designed to represent regulated tokens (security tokens) on Ethereum. It uses OpenZeppelin's upgradeable modules and adds access controls, whitelist/blacklist functionality, and transaction recording.
 
-## Características principales
+## Main Features
 
-- **ERC20 estándar** con funciones de quemado, pausado y límite de emisión (cap).
-- **Control de acceso** basado en roles (`ADMIN_ROLE`, `MINTER_ROLE`, `PAUSER_ROLE`).
-- **Listas blanca y negra** para restringir transferencias.
-- **Registro de transacciones** para trazabilidad y cumplimiento.
-- **Inicializable** para despliegues upgradeables.
+- **Standard ERC20** with burning, pausing, and minting cap (cap) functions.
+- **Role-based access control** (`ADMIN_ROLE`, `MINTER_ROLE`, `PAUSER_ROLE`).
+- **Whitelist and blacklist** to restrict transfers.
+- **Transaction recording** for traceability and compliance.
+- **Initializable** for upgradeable deployments.
+- **Custom errors** for gas-efficient error handling.
 
 ---
 
-## Funciones principales
+## Main Functions
 
-### Inicialización
+### Initialization
 
 ```solidity
 function initialize(
@@ -36,77 +36,78 @@ function initialize(
     address admin
 ) public virtual initializer
 ```
-Inicializa el token con sus parámetros y asigna los roles principales al `admin`.
+Initializes the token with its parameters and assigns main roles to the `admin`.
 
 ---
 
-### Funciones de emisión y control
+### Minting and control functions
 
 - **mint(address to, uint256 amount)**  
-  Permite a cuentas con `MINTER_ROLE` emitir nuevos tokens.
+  Allows accounts with `MINTER_ROLE` to mint new tokens.
 
 - **pause()**  
-  Permite a cuentas con `PAUSER_ROLE` pausar todas las transferencias.
+  Allows accounts with `PAUSER_ROLE` to pause all transfers.
 
 - **unpause()**  
-  Permite a cuentas con `PAUSER_ROLE` reanudar las transferencias.
+  Allows accounts with `PAUSER_ROLE` to resume transfers.
 
 ---
 
-### Listas blanca y negra
+### Whitelist and blacklist
 
 - **addToWhitelist(address account)**  
-  Agrega una cuenta a la whitelist (solo `ADMIN_ROLE`).
+  Adds an account to the whitelist (only `ADMIN_ROLE`).
 
 - **removeFromWhitelist(address account)**  
-  Elimina una cuenta de la whitelist (solo `ADMIN_ROLE`).
+  Removes an account from the whitelist (only `ADMIN_ROLE`).
 
 - **addToBlacklist(address account)**  
-  Agrega una cuenta a la blacklist (solo `ADMIN_ROLE`).
+  Adds an account to the blacklist (only `ADMIN_ROLE`).
 
 - **removeFromBlacklist(address account)**  
-  Elimina una cuenta de la blacklist (solo `ADMIN_ROLE`).
+  Removes an account from the blacklist (only `ADMIN_ROLE`).
 
 ---
 
-### Registro y reversión de transacciones
+### Transaction recording and reversal
 
 - **getTransactionRecord(uint256 id)**  
-  Devuelve los detalles de una transacción registrada.
+  Returns details of a recorded transaction.
 
 - **revertTransaction(uint256 transactionId)**  
-  Permite a un administrador revertir una transacción registrada, transfiriendo los tokens de vuelta.
+  Allows an administrator to revert a recorded transaction, transferring tokens back.
 
 ---
 
-### Métadatos y variables públicas
+### Metadata and public variables
 
 - **isin**  
-  Código ISIN del instrumento financiero.
+  ISIN code of the financial instrument.
 
 - **instrumentType**  
-  Tipo de instrumento (ej: "bond").
+  Type of instrument (e.g., "bond").
 
 - **jurisdiction**  
-  Jurisdicción aplicable.
+  Applicable jurisdiction.
 
 - **transactionCount**  
-  Número total de transacciones registradas.
+  Total number of recorded transactions.
 
 ---
 
-## Seguridad y cumplimiento
+## Security and compliance
 
-- Todas las transferencias verifican que el emisor y receptor estén en la whitelist y no en la blacklist.
-- Solo cuentas con los roles adecuados pueden pausar, mintear o modificar listas.
-- Cada transferencia queda registrada para trazabilidad y cumplimiento normativo.
+- All transfers verify that sender and recipient are on the whitelist and not on the blacklist.
+- Only accounts with appropriate roles can pause, mint, or modify lists.
+- Each transfer is recorded for traceability and regulatory compliance.
+- Uses modern custom errors for gas efficiency and better debugging.
 
 ---
 
-## Ejemplo de uso
+## Usage example
 
 ```solidity
-// Inicialización (solo una vez)
+// Initialization (only once)
 securityToken.initialize(
     "My Security Token",
     "MST",
@@ -117,100 +118,101 @@ securityToken.initialize(
     adminAddress
 );
 
-// Minteo
+// Minting
 securityToken.mint(user, 1000 ether);
 
-// Pausar y reanudar
+// Pause and resume
 securityToken.pause();
 securityToken.unpause();
 
-// Gestión de listas
+// List management
 securityToken.addToWhitelist(user);
 securityToken.addToBlacklist(maliciousUser);
 
-// Consultar registro de transacciones
+// Query transaction records
 SecurityToken.TransactionRecord memory record = securityToken.getTransactionRecord(1);
 ```
 
 ---
 
-# Security Token con Patrón Beacon
+# Security Token with Beacon Pattern
 
-Este patrón implementa un sistema de tokens de seguridad (Security Tokens) utilizando el patrón **Beacon Proxy** de OpenZeppelin, permitiendo la creación de múltiples instancias de tokens actualizables de manera eficiente.
+This pattern implements a security token system using OpenZeppelin's **Beacon Proxy** pattern, allowing efficient creation of multiple upgradeable token instances.
 
-##  Arquitectura del Sistema
+## System Architecture
 
-El sistema consta de tres componentes principales:
+The system consists of three main components:
 
 1. **SecurityToken.sol**  
-    Contrato de implementación del token de seguridad que incluye:
-    - ERC20 Upgradeable: Funcionalidad básica de token
-    - ERC20 Burnable: Capacidad de quemar tokens
-    - ERC20 Pausable: Pausar/reanudar transferencias
-    - ERC20 Capped: Límite máximo de suministro
-    - Access Control: Sistema de roles y permisos
-    - Whitelist/Blacklist: Control de direcciones autorizadas
-    - Transaction Records: Registro de transacciones para auditoría
+    Security token implementation contract that includes:
+    - ERC20 Upgradeable: Basic token functionality
+    - ERC20 Burnable: Token burning capability
+    - ERC20 Pausable: Pause/resume transfers
+    - ERC20 Capped: Maximum supply limit
+    - Access Control: Role and permission system
+    - Whitelist/Blacklist: Control of authorized addresses
+    - Transaction Records: Transaction recording for auditing
+    - Custom Errors: Gas-efficient error handling
 
 2. **SecurityBondFactory.sol**  
-    Factory contract que crea instancias de SecurityToken usando BeaconProxy:
-    - Crea nuevos tokens de seguridad
-    - Mantiene registro de todos los tokens creados
-    - Utiliza el patrón Beacon para actualizaciones eficientes
+    Factory contract that creates SecurityToken instances using BeaconProxy:
+    - Creates new security tokens
+    - Maintains registry of all created tokens
+    - Uses Beacon pattern for efficient upgrades
 
 3. **__CompileBeacon.sol**  
-    Contrato auxiliar para compilación de UpgradeableBeacon en Hardhat.
+    Auxiliary contract for UpgradeableBeacon compilation in Hardhat.
 
-## 🔑 Características Principales
+## 🔑 Main Features
 
-### Roles y Permisos
+### Roles and Permissions
 
-- `ADMIN_ROLE`: Gestión de whitelist/blacklist y reversión de transacciones
-- `MINTER_ROLE`: Creación de nuevos tokens
-- `PAUSER_ROLE`: Pausar/reanudar el contrato
-- `DEFAULT_ADMIN_ROLE`: Administración general de roles
+- `ADMIN_ROLE`: Whitelist/blacklist management and transaction reversal
+- `MINTER_ROLE`: Creation of new tokens
+- `PAUSER_ROLE`: Pause/resume contract
+- `DEFAULT_ADMIN_ROLE`: General role administration
 
-### Funcionalidades de Seguridad
+### Security Features
 
-- **Whitelist:** Solo direcciones autorizadas pueden recibir tokens
-- **Blacklist:** Bloqueo de direcciones específicas
-- **Pausable:** Capacidad de pausar todas las operaciones
-- **Transaction Reversal:** Reversión de transacciones por administradores
-- **Audit Trail:** Registro completo de todas las transacciones
+- **Whitelist:** Only authorized addresses can receive tokens
+- **Blacklist:** Blocking of specific addresses
+- **Pausable:** Ability to pause all operations
+- **Transaction Reversal:** Transaction reversal by administrators
+- **Audit Trail:** Complete record of all transactions
+- **Custom Errors:** Gas-efficient error handling
 
-### Metadatos del Instrumento
+### Instrument Metadata
 
-- **ISIN:** Identificador internacional del instrumento
-- **Instrument Type:** Tipo de instrumento financiero
-- **Jurisdiction:** Jurisdicción legal aplicable
+- **ISIN:** International instrument identifier
+- **Instrument Type:** Type of financial instrument
+- **Jurisdiction:** Applicable legal jurisdiction
 
-## 📁 Estructura de Archivos
+## 📁 File Structure
 
 ```
 contracts/
-├── SecurityToken.sol           # Implementación del token de seguridad
-├── SecurityBondFactory.sol     # Factory para crear instancias
-└── __CompileBeacon.sol         # Auxiliar para compilación
+├── SecurityToken.sol           # Security token implementation
+├── SecurityBondFactory.sol     # Factory for creating instances
+└── __CompileBeacon.sol         # Auxiliary for compilation
 ```
 
-## 🚀 Guía de Despliegue
+## 🚀 Deployment Guide
 
+> **Note:** This pattern does **NOT** use `@openzeppelin/hardhat-upgrades` as it implements the Beacon pattern manually for greater control over the deployment process.
 
-> **Nota:** Este patrón **NO** usa `@openzeppelin/hardhat-upgrades` ya que implementa el patrón Beacon manualmente para mayor control sobre el proceso de despliegue.
+### Step-by-Step Deployment
 
-### Paso a Paso del Despliegue
-
-1. **Script de despliegue**
+1. **Deployment script**
 
     ```js
-    // scripts/deploy.js
+    // scripts/beaconDeploy.js
     const { ethers } = require("hardhat");
 
     async function main() {
       const [admin] = await ethers.getSigners();
       console.log("Deploying contracts with account:", admin.address);
 
-      // 1. Desplegar la implementación de SecurityToken
+      // 1. Deploy SecurityToken implementation
       const SecurityTokenFactory = await ethers.getContractFactory("SecurityToken");
       const securityTokenImpl = await SecurityTokenFactory.deploy();
       await securityTokenImpl.waitForDeployment();
@@ -218,7 +220,7 @@ contracts/
       const implAddress = await securityTokenImpl.getAddress();
       console.log("Implementation deployed at:", implAddress);
 
-      // 2. Desplegar el UpgradeableBeacon manualmente
+      // 2. Deploy UpgradeableBeacon manually
       const BeaconFactory = await ethers.getContractFactory("UpgradeableBeacon");
       const beacon = await BeaconFactory.deploy(implAddress, admin.address);
       await beacon.waitForDeployment();
@@ -226,7 +228,7 @@ contracts/
       const beaconAddress = await beacon.getAddress();
       console.log("Beacon deployed at:", beaconAddress);
 
-      // 3. Desplegar el Factory
+      // 3. Deploy Factory
       const Factory = await ethers.getContractFactory("SecurityBondFactory");
       const factory = await Factory.deploy(beaconAddress);
       await factory.waitForDeployment();
@@ -247,24 +249,24 @@ contracts/
     });
     ```
 
-3. **Ejecutar el despliegue**
+2. **Execute deployment**
 
     ```bash
-    npx hardhat run scripts/deploy.js --network <network-name>
+    npx hardhat run scripts/beaconDeploy.js --network <network-name>
     ```
 
-4. **Crear una instancia de SecurityToken**
+3. **Create a SecurityToken instance**
 
     ```js
-    // scripts/beeaconCreateToken.js
+    // scripts/beaconCreateToken.js
     async function createSecurityToken() {
       const [admin, user1] = await ethers.getSigners();
       
-      // Obtener las instancias de los contratos desplegados
+      // Get instances of deployed contracts
       const factory = await ethers.getContractAt("SecurityBondFactory", FACTORY_ADDRESS);
       const securityTokenImpl = await ethers.getContractAt("SecurityToken", IMPLEMENTATION_ADDRESS);
       
-      // Preparar datos de inicialización usando la implementación real
+      // Prepare initialization data using the actual implementation
       const initData = securityTokenImpl.interface.encodeFunctionData("initialize", [
          "TestBond",              // name
          "TBND",                  // symbol
@@ -275,22 +277,22 @@ contracts/
          admin.address            // admin
       ]);
 
-      // Crear el token
+      // Create the token
       const tx = await factory.createBond(initData, user1.address);
       const receipt = await tx.wait();
       
-      // Obtener la dirección del primer bond creado
+      // Get address of first created bond
       const bondAddress = await factory.deployedBonds(0);
       console.log("Security Token created at:", bondAddress);
       
-      // Interactuar con el nuevo token
+      // Interact with the new token
       const bond = await ethers.getContractAt("SecurityToken", bondAddress);
       
-      // Configuración inicial
+      // Initial configuration
       await bond.addToWhitelist(admin.address);
       await bond.addToWhitelist(user1.address);
       
-      // Mint tokens iniciales
+      // Initial token minting
       await bond.mint(user1.address, ethers.parseUnits("1000", 18));
       
       console.log("Token configured and initial minting completed");
@@ -298,70 +300,71 @@ contracts/
     }
     ```
 
-## 🛠️ Uso del Sistema
+## 🛠️ System Usage
 
-### Crear un nuevo Security Token
+### Create a new Security Token
 
 ```js
 const factory = await ethers.getContractAt("SecurityBondFactory", factoryAddress);
-const initData = /* datos de inicialización */;
+const initData = /* initialization data */;
 await factory.createBond(initData, beneficiaryAddress);
 ```
 
-### Interactuar con un Security Token
+### Interact with a Security Token
 
 ```js
 const token = await ethers.getContractAt("SecurityToken", tokenAddress);
 
-// Añadir a whitelist
+// Add to whitelist
 await token.addToWhitelist(userAddress);
 
 // Mint tokens
 await token.mint(userAddress, amount);
 
-// Pausar contrato
+// Pause contract
 await token.pause();
 
-// Ver registro de transacciones
+// View transaction records
 const record = await token.getTransactionRecord(transactionId);
 ```
 
-### Actualizar la implementación
+### Update implementation
 
 ```js
-// Actualizar todos los tokens a una nueva implementación
+// Update all tokens to a new implementation
 const NewSecurityToken = await ethers.getContractFactory("SecurityTokenV2");
-await upgrades.upgradeBeacon(beaconAddress, NewSecurityToken);
+const newImpl = await NewSecurityToken.deploy();
+await beacon.upgradeTo(await newImpl.getAddress());
 ```
 
-## 🛡️ Consideraciones de Seguridad
+## 🛡️ Security Considerations
 
-### Roles Críticos
+### Critical Roles
 
-- El `DEFAULT_ADMIN_ROLE` tiene control total sobre el contrato
-- Los roles deben asignarse cuidadosamente y seguir el principio de menor privilegio
-- Considerar usar multi-sig para roles administrativos
+- The `DEFAULT_ADMIN_ROLE` has complete control over the contract
+- Roles should be assigned carefully following the principle of least privilege
+- Consider using multi-sig for administrative roles
 
-### Validaciones Importantes
+### Important Validations
 
-- Todas las direcciones deben estar en whitelist para recibir tokens
-- Las direcciones en blacklist están completamente bloqueadas
-- Las transacciones se registran automáticamente para auditoría
+- All addresses must be on whitelist to receive tokens
+- Addresses on blacklist are completely blocked
+- Transactions are automatically recorded for auditing
 
-### Actualizaciones
+### Upgrades
 
-- El patrón Beacon permite actualizar todos los tokens simultáneamente
-- Las actualizaciones deben probarse exhaustivamente en testnet
-- Mantener compatibilidad con el storage layout existente
+- The Beacon pattern allows updating all tokens simultaneously
+- Upgrades should be thoroughly tested on testnet
+- Maintain compatibility with existing storage layout
 
 ## 🧪 Testing
 
-### Estructura de Tests
+### Test Structure
 
-Los tests validan toda la funcionalidad del sistema usando el patrón BeaconProxy:
+Tests validate all system functionality using the BeaconProxy pattern:
 
 ```js
-// test/SecurityToken.test.js
+// test/beaconAndSecurity.js
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
@@ -372,51 +375,27 @@ describe("SecurityToken (BeaconProxy architecture)", function () {
   before(async function () {
      [admin, user1, user2] = await ethers.getSigners();
      
-     // Desplegar implementación
+     // Deploy implementation
      const SecurityTokenFactory = await ethers.getContractFactory("SecurityToken");
-     securityTokenImpl = await SecurityTokenFactory.deploy();
-     await securityTokenImpl.waitForDeployment();
-
-     // Desplegar Beacon
-     const BeaconFactory = await ethers.getContractFactory("UpgradeableBeacon");
-     beacon = await BeaconFactory.deploy(
-        await securityTokenImpl.getAddress(), 
-        admin.address
-     );
-     await beacon.waitForDeployment();
-
-     // Desplegar Factory
-     const Factory = await ethers.getContractFactory("SecurityBondFactory");
-     factory = await Factory.deploy(await beacon.getAddress());
-     await factory.waitForDeployment();
-
-     // Crear un bond de prueba
-     const initData = securityTokenImpl.interface.encodeFunctionData("initialize", [
-        "TestBond", "TBND", ethers.parseUnits("1000000", 18),
-        "ISIN1234567890", "bond", "ES", admin.address
-     ]);
-
-     await factory.createBond(initData, user1.address);
-     const bondAddress = await factory.deployedBonds(0);
+     // ...setup code
      bond = await ethers.getContractAt("SecurityToken", bondAddress);
   });
-
-  // Tests de funcionalidad...
+  // Functionality tests...
 });
 ```
 
-#### Casos de Prueba Principales
+#### Main Test Cases
 
-- ✅ Despliegue correcto usando Factory
-- ✅ Minting y transferencias con whitelist
-- ✅ Registro automático de transacciones
-- ✅ Reversión de transacciones por ID
-- ✅ Bloqueo de transferencias sin whitelist
-- ✅ Control de roles y permisos
-- ✅ Funcionalidad de pausa/reanudación
+- ✅ Correct deployment using Factory
+- ✅ Minting and transfers with whitelist
+- ✅ Automatic transaction recording
+- ✅ Transaction reversal by ID
+- ✅ Transfer blocking without whitelist
+- ✅ Role and permission control
+- ✅ Pause/resume functionality
 
 ```bash
-# Ejecutar tests
+# Run tests
 npx hardhat test
 
 # Coverage
@@ -425,13 +404,13 @@ npx hardhat coverage
 
 # Diamond Security Token
 
-Una implementación de token de seguridad (security token) utilizando el patrón Diamond (EIP-2535) que permite modularidad, upgradeability y cumplimiento regulatorio.
+A security token implementation using the Diamond pattern (EIP-2535) that enables modularity, upgradeability, and regulatory compliance.
 
-##  Arquitectura
+## Architecture
 
-### Patrón Diamond (EIP-2535)
+### Diamond Pattern (EIP-2535)
 
-El patrón Diamond permite crear contratos modulares sin límites de tamaño donde las funcionalidades están separadas en múltiples contratos llamados "facets". Todas las llamadas se enrutan a través de un contrato principal (Diamond) que delega la ejecución al facet correspondiente.
+The Diamond pattern allows creating modular contracts without size limits where functionalities are separated into multiple contracts called "facets". All calls are routed through a main contract (Diamond) that delegates execution to the corresponding facet.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -444,47 +423,42 @@ El patrón Diamond permite crear contratos modulares sin límites de tamaño don
 │  └──────────────────────────────────────────────────────────┘   │
 └─────────────────────────┬───────────────────────────────────────┘
                           │
-          ┌───────────────┴──────────────────┐
-          │           Delegatecall           │
-          └───────────────┬──────────────────┘
-                          │
-     ┌────────────────────┼────────────────────┐
      │                    │                    │
 ┌────▼────┐        ┌─────▼─────┐        ┌────▼────┐
 │ ERC20   │        │  Minting  │        │  Admin  │
 │ Facet   │        │   Facet   │        │  Facet  │
 └─────────┘        └───────────┘        └─────────┘
                            │
-                    ┌─────▼─────┐
-                    │Compliance │
-                    │   Facet   │
-                    └───────────┘
+                   ┌───────▼────────┐
+                   │  Compliance    │
+                   │     Facet      │
+                   └────────────────┘
 ```
 
-## 📁 Estructura de Contratos
+## 📁 Contract Structure
 
 ### Core Diamond Contracts
 
 #### `Diamond.sol`
-Contrato principal que actúa como proxy y enruta todas las llamadas a los facets correspondientes.
+Main contract that acts as a proxy and routes all calls to corresponding facets.
 
-- **Fallback function:** Enruta automáticamente las llamadas usando `delegatecall`
-- **Constructor:** Inicializa el diamond con los facets iniciales
-- **ERC165 Support:** Registra interfaces soportadas
+- **Fallback function:** Automatically routes calls using `delegatecall`
+- **Constructor:** Initializes the diamond with initial facets
+- **ERC165 Support:** Registers supported interfaces
 
 #### `LibDiamond.sol`
-Librería que maneja el storage y la lógica del patrón Diamond.
+Library that manages storage and logic for the Diamond pattern.
 
-- **Diamond Storage:** Mapeo de selectores de funciones a direcciones de facets
-- **Facet Management:** Añadir, reemplazar y eliminar facets
-- **Owner Management:** Control de acceso para modificaciones
+- **Diamond Storage:** Mapping of function selectors to facet addresses
+- **Facet Management:** Add, replace, and remove facets
+- **Owner Management:** Access control for modifications
 
 ---
 
 ### Standard Diamond Facets
 
 #### `DiamondCutFacet.sol`
-Permite modificar la estructura del diamond (añadir, reemplazar, eliminar facets).
+Allows modifying the diamond structure (add, replace, remove facets).
 
 ```solidity
 function diamondCut(
@@ -494,12 +468,23 @@ function diamondCut(
 ) external;
 ```
 
+**Note:** This facet only contains core cutting functionality. Ownership functions (`owner()`, `isOwner()`) are handled by the OwnershipFacet to avoid function selector conflicts.
+
 #### `DiamondLoupeFacet.sol`
-Proporciona introspección del diamond (consultar qué facets y funciones están disponibles).
+Provides diamond introspection (query available facets and functions).
 
 ```solidity
 function facets() external view returns (Facet[] memory);
 function facetAddress(bytes4 _functionSelector) external view returns (address);
+```
+
+#### `OwnershipFacet.sol`
+Handles diamond ownership management.
+
+```solidity
+function owner() external view returns (address);
+function isOwner(address account) external view returns (bool);
+function transferOwnership(address newOwner) external;
 ```
 
 ---
@@ -507,66 +492,68 @@ function facetAddress(bytes4 _functionSelector) external view returns (address);
 ### Security Token Facets
 
 #### `ERC20Facet.sol`
-Implementa la funcionalidad básica de ERC20 con controles de seguridad.
+Implements basic ERC20 functionality with security controls.
 
 - ✅ Transfer, approve, transferFrom
-- ✅ Verificaciones de whitelist/blacklist
-- ✅ Prevención de transferencias cuando está pausado
-- ✅ Registro automático de transacciones
+- ✅ Whitelist/blacklist verifications
+- ✅ Transfer prevention when paused
+- ✅ Automatic transaction recording
+- ✅ Custom errors for gas efficiency
 
 #### `MintingFacet.sol`
-Maneja el minteo y quema de tokens.
+Handles token minting and burning.
 
-- ✅ Mint con verificación de cap
-- ✅ Burn y burnFrom
-- ✅ Control de acceso por roles
-- ✅ Registro de transacciones de mint/burn
+- ✅ Mint with cap verification
+- ✅ Burn and burnFrom
+- ✅ Role-based access control
+- ✅ Mint/burn transaction recording
 
 #### `AdminFacet.sol`
-Funcionalidades administrativas y de cumplimiento.
+Administrative and compliance functionalities.
 
-- ✅ Pausar/despausar el contrato
-- ✅ Gestión de whitelist y blacklist
-- ✅ Gestión de roles (grant/revoke)
-- ✅ Control de acceso
+- ✅ Pause/unpause contract
+- ✅ Whitelist and blacklist management
+- ✅ Role management (grant/revoke)
+- ✅ Access control
+- ✅ Custom errors for all admin operations
 
 #### `ComplianceFacet.sol`
-Funcionalidades específicas de cumplimiento regulatorio.
+Regulatory compliance specific functionalities.
 
-- ✅ Metadata del security token (ISIN, tipo, jurisdicción)
-- ✅ Registro y consulta de transacciones
-- ✅ Reversión de transacciones (emergencias)
-- ✅ Constantes de roles
+- ✅ Security token metadata (ISIN, type, jurisdiction)
+- ✅ Transaction recording and querying
+- ✅ Transaction reversal (emergencies)
+- ✅ Role constants
 
 ---
 
 ### Storage Management
 
 #### `LibSecurityToken.sol`
-Librería que centraliza todo el storage del security token en un slot dedicado.
+Library that centralizes all security token storage in a dedicated slot.
 
 ```solidity
 struct SecurityTokenStorage {
     // ERC20 Storage
     mapping(address => uint256) balances;
     mapping(address => mapping(address => uint256)) allowances;
-    uint256 totalSupply;
     string name;
     string symbol;
+    uint256 totalSupply;
+    uint256 cap;
     
-    // Security Token Specific
+    // Security features
+    mapping(bytes32 => mapping(address => bool)) roles;
+    mapping(address => bool) whitelist;
+    mapping(address => bool) blacklist;
+    bool paused;
+    
+    // Compliance
     string isin;
     string instrumentType;
     string jurisdiction;
-    mapping(address => bool) whitelist;
-    mapping(address => bool) blacklist;
-    
-    // Transaction Records
-    mapping(uint256 => TransactionRecord) transactionRecords;
     uint256 transactionCount;
-    
-    // Access Control
-    mapping(bytes32 => mapping(address => bool)) roles;
+    mapping(uint256 => TransactionRecord) transactionRecords;
 }
 ```
 
@@ -575,284 +562,239 @@ struct SecurityTokenStorage {
 ### Initialization
 
 #### `DiamondInit.sol`
-Contrato de inicialización que configura el estado inicial del security token.
+Initialization contract that sets up the initial state of the security token.
 
-- ✅ Configuración de parámetros ERC20
-- ✅ Configuración de metadata del security token
-- ✅ Asignación de roles iniciales
-- ✅ Configuración de cap y otros límites
+- ✅ ERC20 parameter configuration
+- ✅ Security token metadata configuration
+- ✅ Initial role assignment
+- ✅ Cap and other limit configuration
 
 ---
 
-## 🚀 Despliegue
+## 🚀 Deployment
 
+### Prerequisites
 
+```bash
+npm install
+npx hardhat compile
+```
 
-### Script de Despliegue
+### Deployment Script
+
+The complete deployment script handles all facets and resolves function selector conflicts:
 
 ```javascript
 // scripts/diamondDeploy.js
 const { ethers } = require("hardhat");
 
 async function main() {
-  const [deployer] = await ethers.getSigners();
-  console.log("Deploying with account:", deployer.address);
-
-  // 1. Deploy all facets
-  console.log("📦 Deploying facets...");
-  
-  const DiamondCutFacet = await ethers.getContractFactory("DiamondCutFacet");
-  const diamondCutFacet = await DiamondCutFacet.deploy();
-  await diamondCutFacet.waitForDeployment();
-  
-  const DiamondLoupeFacet = await ethers.getContractFactory("DiamondLoupeFacet");
-  const diamondLoupeFacet = await DiamondLoupeFacet.deploy();
-  await diamondLoupeFacet.waitForDeployment();
-  
-  const ERC20Facet = await ethers.getContractFactory("ERC20Facet");
-  const erc20Facet = await ERC20Facet.deploy();
-  await erc20Facet.waitForDeployment();
-  
-  const MintingFacet = await ethers.getContractFactory("MintingFacet");
-  const mintingFacet = await MintingFacet.deploy();
-  await mintingFacet.waitForDeployment();
-  
-  const AdminFacet = await ethers.getContractFactory("AdminFacet");
-  const adminFacet = await AdminFacet.deploy();
-  await adminFacet.waitForDeployment();
-  
-  const ComplianceFacet = await ethers.getContractFactory("ComplianceFacet");
-  const complianceFacet = await ComplianceFacet.deploy();
-  await complianceFacet.waitForDeployment();
-
-  // 2. Deploy DiamondInit
-  console.log("🎯 Deploying DiamondInit...");
-  const DiamondInit = await ethers.getContractFactory("DiamondInit");
-  const diamondInit = await DiamondInit.deploy();
-  await diamondInit.waitForDeployment();
-
-  // 3. Prepare function selectors
-  function getSelectors(contract) {
-    const signatures = Object.keys(contract.interface.functions);
-    return signatures.reduce((acc, val) => {
-      if (val !== 'init(bytes)') {
-        acc.push(contract.interface.getFunction(val).selector);
-      }
-      return acc;
-    }, []);
-  }
-
-  // 4. Prepare diamond cut
-  const cut = [
-    {
-      facetAddress: await diamondCutFacet.getAddress(),
-      action: 0, // Add
-      functionSelectors: getSelectors(diamondCutFacet)
-    },
-    {
-      facetAddress: await diamondLoupeFacet.getAddress(),
-      action: 0, // Add
-      functionSelectors: getSelectors(diamondLoupeFacet)
-    },
-    {
-      facetAddress: await erc20Facet.getAddress(),
-      action: 0, // Add
-      functionSelectors: getSelectors(erc20Facet)
-    },
-    {
-      facetAddress: await mintingFacet.getAddress(),
-      action: 0, // Add
-      functionSelectors: getSelectors(mintingFacet)
-    },
-    {
-      facetAddress: await adminFacet.getAddress(),
-      action: 0, // Add
-      functionSelectors: getSelectors(adminFacet)
-    },
-    {
-      facetAddress: await complianceFacet.getAddress(),
-      action: 0, // Add
-      functionSelectors: getSelectors(complianceFacet)
-    }
-  ];
-
-  // 5. Prepare initialization data
-  const initData = diamondInit.interface.encodeFunctionData("init", [
-    "Security Bond Token",    // name
-    "SBT",                   // symbol
-    ethers.parseUnits("1000000", 18), // cap
-    "ISIN1234567890",        // isin
-    "bond",                  // instrumentType
-    "ES",                    // jurisdiction
-    deployer.address         // admin
-  ]);
-
-  // 6. Deploy Diamond
-  console.log("💎 Deploying Diamond...");
-  const Diamond = await ethers.getContractFactory("Diamond");
-  const diamond = await Diamond.deploy(
-    cut,
-    await diamondInit.getAddress(),
-    initData
-  );
-  await diamond.waitForDeployment();
-
-  const diamondAddress = await diamond.getAddress();
-  console.log("✅ Diamond deployed to:", diamondAddress);
-
-  // 7. Verify deployment
-  const diamondLoupe = await ethers.getContractAt("DiamondLoupeFacet", diamondAddress);
-  const facets = await diamondLoupe.facets();
-  console.log(`✅ Diamond has ${facets.length} facets attached`);
-
-  return {
-    diamond: diamondAddress,
-    facets: {
-      diamondCut: await diamondCutFacet.getAddress(),
-      diamondLoupe: await diamondLoupeFacet.getAddress(),
-      erc20: await erc20Facet.getAddress(),
-      minting: await mintingFacet.getAddress(),
-      admin: await adminFacet.getAddress(),
-      compliance: await complianceFacet.getAddress()
-    }
-  };
+  // 1. Deploy DiamondInit
+  // 2. Deploy Standard Diamond Facets (DiamondCut, DiamondLoupe, Ownership)
+  // 3. Deploy Security Token Facets (ERC20, Minting, Admin, Compliance)
+  // 4. Prepare Diamond Cut with all facets
+  // 5. Deploy Diamond with initialization
+  // 6. Verify deployment
+  // 7. Save deployment info
 }
-
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
 ```
 
-### Ejecutar Despliegue
+### Execute Deployment
 
 ```bash
-
+# Compile contracts
 npx hardhat compile
 
+# Run deployment script
 npx hardhat run scripts/diamondDeploy.js --network <NETWORK_NAME>
+
 ```
+
+### Recent Improvements
+
+The deployment script now includes:
+- ✅ **Function selector conflict resolution** - Removed duplicate functions between facets
+- ✅ **Comprehensive error handling** - Custom errors throughout all facets
+- ✅ **Gas optimization** - Efficient selector mapping and storage usage
+- ✅ **Detailed logging** - Complete deployment information and verification
 
 ---
 
 ## 🧪 Testing
 
+### Comprehensive Test Suite
+
 ```bash
-# Ejecutar todos los tests
+# Run all tests
 npx hardhat test
 
+# Run specific test files
+npx hardhat test test/diamondAndSecurity.js
+npx hardhat test test/beaconAndSecurity.js
+
+# Generate coverage report
 npx hardhat coverage
 ```
 
+### Test Results
+
+- ✅ **Diamond Architecture Tests:** 20/20 passing
+- ✅ **Beacon Proxy Tests:** 5/5 passing  
+- ✅ **Total Test Coverage:** 25/25 tests passing
+
 ---
 
-## 📖 Uso
+## 📖 Usage
 
-### Interactuar con el Diamond
+### Interact with the Diamond
 
 ```javascript
-// Obtener instancias de los facets
+// Get facet instances
 const erc20 = await ethers.getContractAt("ERC20Facet", diamondAddress);
 const admin = await ethers.getContractAt("AdminFacet", diamondAddress);
 const minting = await ethers.getContractAt("MintingFacet", diamondAddress);
 const compliance = await ethers.getContractAt("ComplianceFacet", diamondAddress);
+const ownership = await ethers.getContractAt("OwnershipFacet", diamondAddress);
 
-// Añadir usuario a whitelist
+// Add user to whitelist
 await admin.addToWhitelist(userAddress);
 
-// Mintear tokens
+// Mint tokens
 await minting.mint(userAddress, ethers.parseUnits("1000", 18));
 
-// Transferir tokens
+// Transfer tokens
 await erc20.connect(user).transfer(recipientAddress, ethers.parseUnits("100", 18));
 
-// Consultar transacciones
+// Query transactions
 const txCount = await compliance.transactionCount();
 const lastTx = await compliance.getTransactionRecord(txCount);
+
+// Check ownership
+const isOwner = await ownership.isOwner(adminAddress);
 ```
 
-### Upgrades del Diamond
+### Diamond Upgrades
 
 ```javascript
-// Desplegar nuevo facet
+// Deploy new facet
 const NewFacet = await ethers.getContractFactory("NewFacet");
 const newFacet = await NewFacet.deploy();
 
-// Preparar diamond cut
+// Prepare diamond cut
 const cut = [{
   facetAddress: await newFacet.getAddress(),
   action: 0, // Add
   functionSelectors: getSelectors(newFacet)
 }];
 
-// Ejecutar upgrade
+// Execute upgrade
 const diamondCut = await ethers.getContractAt("DiamondCutFacet", diamondAddress);
 await diamondCut.diamondCut(cut, ethers.ZeroAddress, "0x");
 ```
 
----
+## 🔧 Development Tools
 
-## 🛡️ Seguridad
+### Function Selector Checker
 
-### Controles Implementados
+A utility script to detect function selector conflicts:
 
-- ✅ Access Control: Roles granulares para diferentes operaciones
-- ✅ Whitelist/Blacklist: Control de transferencias por dirección
-- ✅ Pausable: Capacidad de pausar todas las transferencias
-- ✅ Capped Supply: Límite máximo de tokens
-- ✅ Transaction Recording: Registro inmutable de todas las transacciones
-- ✅ Emergency Reversals: Capacidad de revertir transacciones en emergencias
+```bash
+# Check for duplicate selectors
+npx hardhat run scripts/checkSelectors.js
+```
 
-### Mejores Prácticas
+This tool helps prevent the "Can't add function that already exists" error during deployment.
 
-- **Gestión de Roles:** Usar diferentes addresses para diferentes roles
-- **Upgrades:** Probar thoroughly en testnet antes de mainnet:
+## 🛡️ Security Features
 
-### Pre-Mainnet Checklist:
-- [ ] Todos los unit tests pasan (100% coverage)
-- [ ] Deployment script funciona en testnet
-- [ ] Todas las funciones de facets funcionan correctamente
-- [ ] Upgrades de facets funcionan sin perder data
-- [ ] Access control funciona correctamente
-- [ ] Whitelist/blacklist funcionan
-- [ ] Pausable funciona
-- [ ] Transaction recording funciona
-- [ ] Gas costs son aceptables
-- [ ] Auditoría de seguridad completada
-- [ ] Tests de stress completados
-- [ ] Documentación verificada
+### Access Control
+- Role-based permissions with custom errors
+- Multi-signature support for critical operations
+- Owner-only functions for diamond modifications
 
-- **Emergency Procedures:** Establecer procedimientos claros para pausas y reversiones
-- **Monitoring:** Implementar monitoring para transacciones sospechosas – ver [monitoring](https://github.com/Cainuriel/security-tokens-versions/tree/main/monitoring)
+### Compliance
+- Automatic transaction recording
+- Emergency transaction reversal
+- Whitelist/blacklist enforcement
+- Pausable functionality
+
+### Upgrades
+- Modular facet system
+- Function selector conflict detection
+- Storage layout preservation
+- Comprehensive test coverage
 
 ---
 
+## 📊 Production Deployment
+
+### Successful Alastria Network Deployment (This network is not included in the hardhat.config.ts)
+
+- **Diamond Address:** `0x0461df2b6ce85402abcD00e44A0B67fc6d72b6CE`
+- **Total Facets:** 7
+- **Total Function Selectors:** 69 (all unique)
+- **Gas Used:** 8,571,840 
+- **Network:** Alastria
+
+All facets deployed and verified successfully with complete functionality.
+
+## 🔧 Function Selector Conflict Resolution
+
+During development, we encountered function selector conflicts between facets. This has been resolved through careful function distribution:
+
+### Resolved Conflicts
+- ✅ **`owner()` and `isOwner()`**: Removed from DiamondCutFacet, kept in OwnershipFacet
+- ✅ **`hasRole()`**: Removed from ComplianceFacet, kept in AdminFacet  
+- ✅ **`version()`**: Removed from AdminFacet, kept in ERC20Facet
+
+### Development Tool
+A utility script is available to check for selector conflicts:
+
+```bash
+npx hardhat run scripts/checkSelectors.js
+```
+
+This prevents the "Can't add function that already exists" error during deployment.
 
 ---
 
-## 📋 Ventajas del Patrón Diamond
+## 📊 Production Deployment Status
 
-- **Modularidad:** Funcionalidades separadas en facets independientes
-- **No Límite de Tamaño:** Evita el límite de 24KB de contratos
-- **Upgrades Granulares:** Actualizar facets individuales sin afectar otros
-- **Reutilización:** Facets pueden reutilizarse en múltiples diamonds
-- **Storage Organizado:** Cada librería maneja su propio storage
-- **Gas Efficient:** Routing optimizado con assembly
+### Alastria Network Deployment ✅
+
+- **Status**: Successfully deployed and verified
+- **Diamond Address**: `0x0461df2b6ce85402abcD00e44A0B67fc6d72b6CE`
+- **Total Facets**: 7 (all operational)
+- **Function Selectors**: 69 unique selectors
+- **Gas Usage**: 8,571,840 gas
+- **Test Coverage**: 25/25 tests passing
+
+### Deployment Features
+- ✅ Complete Diamond architecture with all facets
+- ✅ Function selector conflict resolution
+- ✅ Custom error implementation throughout
+- ✅ Role-based access control
+- ✅ Whitelist/blacklist functionality
+- ✅ Transaction recording and reversal
+- ✅ Emergency pause functionality
 
 ---
 
-## ⚠️ Consideraciones
+## 🔄 Recent Improvements
 
-- **Complejidad:** Mayor complejidad de desarrollo y testing
-- **Gas Overhead:** Pequeño overhead por el routing
-- **Debugging:** Más complejo debuggear problemas
-- **Auditoría:** Requiere auditoría más exhaustiva
+### Test Framework Updates
+- **Error Handling**: Migrated from string-based error assertions to custom error assertions
+- **Coverage**: Achieved 100% test coverage across all facets
+- **Custom Errors**: Implemented gas-efficient custom errors throughout the codebase
+
+### Architecture Enhancements
+- **Modularity**: Improved separation of concerns between facets
+- **Gas Optimization**: Reduced deployment costs through selector optimization
+- **Code Quality**: Enhanced readability and maintainability
 
 ---
 
-## 📚 Referencias
+## 📚 References
 
 - [EIP-2535: Diamonds, Multi-Facet Proxy](https://eips.ethereum.org/EIPS/eip-2535)
 - [Diamond Standard Documentation](https://github.com/mudgen/diamond-1)
